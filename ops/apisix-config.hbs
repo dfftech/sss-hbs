@@ -1,0 +1,28 @@
+{
+    "uri": "/{{module}}-{{name}}/*",
+    "name": "{{module}}-{{name}}-{{type}}",
+    "plugins": {
+        "jwe-decrypt": {
+            "header": "authorization",
+            "forward_header": "session-info"
+        },
+        "proxy-rewrite": {
+            "regex_uri": [
+            "^/{{module}}-{{name}}/(.*)",
+            "/$1"
+            ]
+        }
+    },
+    "upstream": {
+        "nodes": [
+        {
+            "host": "{{module}}-{{name}}-{{type}}-svc.{{tenant}}-{{ns}}.svc.cluster.local",
+            "port": 80,
+            "weight": 1
+        }
+        ],
+        "type": "none",
+        "scheme": "http"
+    },
+    "status": 1
+}

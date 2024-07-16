@@ -1,0 +1,60 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout Code') {
+      steps {
+        echo 'Checking out code'
+      }
+    }
+    stage('Get Package Info') {
+      steps {
+        script {
+          echo "BuildBanch: ${env.BRANCH_NAME}:${env.BUILD_NUMBER}"
+          def currentMonthYear = new Date().format('yyyy.MM')
+          env.TAG_VERSION = "${currentMonthYear}.\${env.BUILD_NUMBER}"
+          echo "Build ID: {{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:\${TAG_VERSION}"
+        }
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        sh "docker build --target production . -t registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:\${TAG_VERSION}"
+      }
+    }
+    stage('Push Docker Image to Docker Hub') {
+      steps {
+         withCredentials([usernamePassword(credentialsId: 'scmcred', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+          sh "docker login registry.gitlab.com -u \${USERNAME} -p \${PASSWORD}"
+          sh "docker push registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+        }
+      }
+    }
+    stage('Remove Docker Image') {
+      steps {
+        sh "docker rmi registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+      }
+    }
+    stage('Update Manifest') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'scmcred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+          sh "rm -rf {{module}}-cd"
+          sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd"
+          sh "cd {{module}}-cd/${BRANCH_NAME}"
+          dir("{{module}}-cd/${BRANCH_NAME}") {
+            sh "sed -i 's/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}.*/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}:${TAG_VERSION}/g' {{module}}-{{name}}-{{type}}-deploy.yaml"
+            sh "git config user.email ci@{{tenant}}.com"
+            sh "git config user.name devops"
+            sh "git add ."
+            sh "git commit -m 'Update image version to: ${TAG_VERSION}'"
+            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd HEAD:main -f"
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs() // clean workspace
+    }
+  }
+} 

@@ -1,0 +1,31 @@
+curl -X PUT 'http://192.168.1.11:9180/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
+    -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' \
+    -H 'Content-Type: application/json' \
+    -d ' {
+        "uri": "/{{module}}-{{name}}/*",
+        "name": "{{module}}-{{name}}-{{type}}",
+        "plugins": {
+            "jwe-decrypt": {
+             "header": "authorization",
+             "forward_header": "session-info"
+           },
+           "proxy-rewrite": {
+             "regex_uri": [
+               "^/{{module}}-{{name}}/(.*)",
+               "/$1"
+              ]
+            }
+        },
+        "upstream": {
+          "nodes": [
+            {
+              "host": "{{module}}-{{name}}-{{type}}-svc.{{tenant}}-{{ns}}.svc.cluster.local",
+              "port": 80,
+              "weight": 1
+            }
+          ],
+          "type": "none",
+          "scheme": "http"
+        },
+        "status": 1
+    }'

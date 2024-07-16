@@ -1,0 +1,45 @@
+curl -X POST "https://ci.{{tenant}}.com/createItem?name={{module}}-{{name}}-{{type}}" \
+  -u "admin:{{token}}" \
+  -H "Content-Type: application/xml" \
+  -d "<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject >
+       <disabled>false</disabled>
+         <displayName>{{module}}-{{name}}-{{type}}</displayName>
+         <healthMetrics />
+         <icon class=\"jenkins.branch.MetadataActionFolderIcon\">
+            <owner class=\"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject\"  reference=\"../..\"  />
+         </icon>
+          <properties>
+            <jenkins.model.NodeProperties>
+               <hudson.slaves.EnvironmentVariablesNodeProperty>
+                  <env>
+                     <entry>
+                        <string>DOCKER_LABEL</string>
+                        <string>docker-agent</string>
+                     </entry>
+                  </env>
+               </hudson.slaves.EnvironmentVariablesNodeProperty>
+            </jenkins.model.NodeProperties>
+         </properties>
+         <sources >
+               <jenkins.branch.BranchSource>
+                  <source class=\"jenkins.plugins.git.GitSCMSource\" >
+                     <id>gitcred</id>
+                     <remote>https://{{tenant}}@gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}</remote>
+                     <credentialsId>scmcred</credentialsId>
+                     <traits>
+                        <jenkins.plugins.git.traits.BranchDiscoveryTrait/>
+                        <jenkins.scm.impl.trait.RegexSCMHeadFilterTrait>
+                        <regex>(dev|qa|stg|main)</regex>
+                        </jenkins.scm.impl.trait.RegexSCMHeadFilterTrait>
+                     </traits>
+                  </source>
+                  <strategy class=\"jenkins.branch.DefaultBranchPropertyStrategy\">
+                     <properties class=\"empty-list\" />
+                  </strategy>
+               </jenkins.branch.BranchSource>
+
+         </sources>
+         <factory class=\"org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory\">
+            <scriptPath>Jenkinsfile</scriptPath>
+         </factory>
+      </org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>"

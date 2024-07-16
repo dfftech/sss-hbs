@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{tenant}}-cred
+  namespace: {{tenant}}-{{ns}}
+data:
+  .dockerconfigjson: "{{addon.cred}}"
+type: kubernetes.io/dockerconfigjson
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{module}}-config
+  namespace: {{tenant}}-{{ns}}
+data:
+  {{constantCase module}}_DB: "{{addon.db_env}}"
+  {{constantCase module}}_BASE_URL: "{{addon.base_url}}"
