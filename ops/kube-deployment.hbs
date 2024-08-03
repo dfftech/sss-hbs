@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{module}}-{{name}}-{{type}}
   name: {{module}}-{{name}}-{{type}}-deploy
-  namespace: {{tenant}}-{{ns}}
+  namespace: {{tenant}}-{{addon.ns}}
 spec:
   replicas: 1
   selector:
@@ -37,7 +37,7 @@ metadata:
   labels:
     app: {{module}}-{{name}}-{{type}}
   name: {{module}}-{{name}}-{{type}}-svc
-  namespace: {{tenant}}-{{ns}}
+  namespace: {{tenant}}-{{addon.ns}}
 spec:
   type: ClusterIP
   ports:
@@ -52,8 +52,8 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{module}}-{{name}}-{{type}}
-  namespace: {{tenant}}-{{ns}}
+  name: {{module}}-{{name}}-{{type}}-ing
+  namespace: {{tenant}}-{{addon.ns}}
 spec:
   ingressClassName: nginx
   rules:
@@ -67,4 +67,3 @@ spec:
                 name: {{module}}-{{name}}-{{type}}-svc
                 port:
                   number: 80
-

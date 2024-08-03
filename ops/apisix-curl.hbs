@@ -1,4 +1,4 @@
-curl -X PUT 'http://192.168.1.11:9180/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
+curl -X PUT 'http://localhost:9180/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
     -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' \
     -H 'Content-Type: application/json' \
     -d ' {
@@ -19,7 +19,7 @@ curl -X PUT 'http://192.168.1.11:9180/apisix/admin/routes/{{module}}-{{name}}-{{
         "upstream": {
           "nodes": [
             {
-              "host": "{{module}}-{{name}}-{{type}}-svc.{{tenant}}-{{ns}}.svc.cluster.local",
+              "host": "{{module}}-{{name}}-{{type}}-svc.{{tenant}}-{{addon.ns}}.svc.cluster.local",
               "port": 80,
               "weight": 1
             }

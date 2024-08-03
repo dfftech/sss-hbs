@@ -38,15 +38,15 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'scmcred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
           sh "rm -rf {{module}}-cd"
-          sh "git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd"
-          sh "cd {{module}}-cd/${BRANCH_NAME}"
-          dir("{{module}}-cd/${BRANCH_NAME}") {
+          sh "git clone -b ${BRANCH_NAME} --single-branch https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd"
+          sh "cd {{module}}-cd"
+          dir("{{module}}-cd") {
             sh "sed -i 's/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}.*/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}:${TAG_VERSION}/g' {{module}}-{{name}}-{{type}}-deploy.yaml"
             sh "git config user.email ci@{{tenant}}.com"
             sh "git config user.name devops"
             sh "git add ."
             sh "git commit -m 'Update image version to: ${TAG_VERSION}'"
-            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd HEAD:main -f"
+            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd -f"
           }
         }
       }
@@ -57,4 +57,4 @@ pipeline {
       cleanWs() // clean workspace
     }
   }
-} 
+}
