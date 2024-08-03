@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{tenant}}-cred
+  namespace: {{tenant}}-{{addon.ns}}
+data:
+  .dockerconfigjson: "{{addon.cred}}"
+type: kubernetes.io/dockerconfigjson
