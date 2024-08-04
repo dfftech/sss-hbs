@@ -1,4 +1,4 @@
-curl -X POST "https://ci.{{tenant}}.com/createItem?name={{module}}-{{name}}-{{type}}" \
+curl -X POST "{{url}}/createItem?name={{module}}-{{name}}-{{type}}" \
   -u "admin:{{token}}" \
   -H "Content-Type: application/xml" \
   -d "<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject >

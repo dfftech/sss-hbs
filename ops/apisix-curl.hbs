@@ -1,5 +1,5 @@
-curl -X PUT 'http://localhost:9180/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
-    -H 'X-API-KEY: edd1c9f034335f136f87ad84b625c8f1' \
+curl -X PUT '{{url}}/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
+    -H 'X-API-KEY: {{token}}' \
     -H 'Content-Type: application/json' \
     -d ' {
         "uri": "/{{module}}-{{name}}/*",

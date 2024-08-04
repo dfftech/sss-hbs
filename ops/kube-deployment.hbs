@@ -46,24 +46,3 @@ spec:
       targetPort: {{addon.port}}
   selector:
     app: {{module}}-{{name}}-{{type}}
-
----
-
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{module}}-{{name}}-{{type}}-ing
-  namespace: {{tenant}}-{{addon.ns}}
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: {{module}}{{type}}.{{tenant}}.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{module}}-{{name}}-{{type}}-svc
-                port:
-                  number: 80

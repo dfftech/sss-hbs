@@ -4,5 +4,5 @@ metadata:
   name: {{tenant}}-cred
   namespace: {{tenant}}-{{addon.ns}}
 data:
-  .dockerconfigjson: "{{addon.cred}}"
+  .dockerconfigjson: "{{addon.data}}"
 type: kubernetes.io/dockerconfigjson
