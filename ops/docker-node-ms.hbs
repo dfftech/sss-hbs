@@ -1,0 +1,14 @@
+FROM --platform=linux/amd64 node:20 As development
+WORKDIR /workspace
+COPY package*.json ./
+RUN npm install --force
+COPY . .
+RUN npm run build
+
+FROM --platform=linux/amd64 node:20 As production
+WORKDIR /workspace
+COPY package*.json ./
+RUN npm i --omit=dev
+COPY --from=development /workspace/dist ./dist
+EXPOSE {{addon.port}}
+CMD [ "node", "dist/main.js" ]

@@ -1,5 +1,5 @@
-curl -X POST "{{url}}/createItem?name={{module}}-{{name}}-{{type}}" \
-  -u "admin:{{token}}" \
+curl -X POST "https://{{addon.url}}/createItem?name={{module}}-{{name}}-{{type}}" \
+  -u "admin:{{addon.token}}" \
   -H "Content-Type: application/xml" \
   -d "<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject >
        <disabled>false</disabled>
@@ -37,7 +37,6 @@ curl -X POST "{{url}}/createItem?name={{module}}-{{name}}-{{type}}" \
                      <properties class=\"empty-list\" />
                   </strategy>
                </jenkins.branch.BranchSource>
-
          </sources>
          <factory class=\"org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory\">
             <scriptPath>Jenkinsfile</scriptPath>

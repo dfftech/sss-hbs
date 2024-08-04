@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{tenant}}-{{module}}-{{branch}}.app
+  name: {{tenant}}-{{module}}-{{addon.branch}}.app
   namespace: {{tenant}}-argocd
 spec:
   destination:
-    namespace: {{tenant}}-{{module}}-{{branch}}
+    namespace: {{tenant}}-{{module}}-{{addon.branch}}
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: ""
+    path: {{module}}-{{name}}
     repoURL: https://gitlab.com/{{tenant}}-{{module}}/{{module}}-cd.git
-    targetRevision: {{branch}}
+    targetRevision: {{addon.branch}}
   syncPolicy:
     automated:
       prune: true
