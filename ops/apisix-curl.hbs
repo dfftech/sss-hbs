@@ -1,9 +1,9 @@
-curl -X PUT 'https://{{addon.url}}/apisix/admin/routes/{{module}}-{{name}}-{{type}}' \
+curl -X PUT 'https://{{addon.url}}/apisix/admin/routes/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}' \
     -H 'X-API-KEY: {{token}}' \
     -H 'Content-Type: application/json' \
     -d ' {
-        "uri": "/{{module}}-{{name}}/*",
-        "name": "{{module}}-{{name}}-{{type}}",
+        "uri": "/{{to_kebab_case module}}-{{to_kebab_case name}}/*",
+        "name": "{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}",
         "plugins": {
             "jwe-decrypt": {
              "header": "authorization",
@@ -11,7 +11,7 @@ curl -X PUT 'https://{{addon.url}}/apisix/admin/routes/{{module}}-{{name}}-{{typ
            },
            "proxy-rewrite": {
              "regex_uri": [
-               "^/{{module}}-{{name}}/(.*)",
+               "^/{{to_kebab_case module}}-{{to_kebab_case name}}/(.*)",
                "/$1"
               ]
             }
@@ -19,7 +19,7 @@ curl -X PUT 'https://{{addon.url}}/apisix/admin/routes/{{module}}-{{name}}-{{typ
         "upstream": {
           "nodes": [
             {
-              "host": "{{module}}-{{name}}-{{type}}-svc.{{tenant}}-{{addon.ns}}.svc.cluster.local",
+              "host": "{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}-svc.{{to_kebab_case tenant}}-{{addon.ns}}.svc.cluster.local",
               "port": 80,
               "weight": 1
             }

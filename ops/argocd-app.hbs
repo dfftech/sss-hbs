@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{tenant}}-{{module}}-{{addon.branch}}.app
-  namespace: {{tenant}}-argocd
+  name: {{to_kebab_case tenant}}-{{to_kebab_case module}}-{{addon.branch}}.app
+  namespace: {{to_kebab_case tenant}}-argocd
 spec:
   destination:
-    namespace: {{tenant}}-{{module}}-{{addon.branch}}
+    namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}-{{addon.branch}}
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: {{module}}-{{name}}
-    repoURL: https://gitlab.com/{{tenant}}-{{module}}/{{module}}-cd.git
+    path: {{to_kebab_case module}}-{{to_kebab_case name}}
+    repoURL: https://gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-cd.git
     targetRevision: {{addon.branch}}
   syncPolicy:
     automated:

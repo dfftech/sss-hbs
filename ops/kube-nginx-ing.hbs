@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{module}}-{{name}}-{{type}}-ing
-  namespace: {{tenant}}-{{addon.ns}}
+  name: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}-ing
+  namespace: {{to_kebab_case tenant}}-{{addon.ns}}
 spec:
   ingressClassName: nginx
   rules:
@@ -13,6 +13,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{module}}-{{name}}-{{type}}-svc
+                name: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}-svc
                 port:
                   number: 80

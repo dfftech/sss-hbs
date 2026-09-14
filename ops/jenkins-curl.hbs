@@ -1,9 +1,9 @@
-curl -X POST "https://{{addon.url}}/createItem?name={{module}}-{{name}}-{{type}}" \
+curl -X POST "https://{{addon.url}}/createItem?name={{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}" \
   -u "admin:{{addon.token}}" \
   -H "Content-Type: application/xml" \
   -d "<org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject >
        <disabled>false</disabled>
-         <displayName>{{module}}-{{name}}-{{type}}</displayName>
+         <displayName>{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}</displayName>
          <healthMetrics />
          <icon class=\"jenkins.branch.MetadataActionFolderIcon\">
             <owner class=\"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject\"  reference=\"../..\"  />
@@ -24,7 +24,7 @@ curl -X POST "https://{{addon.url}}/createItem?name={{module}}-{{name}}-{{type}}
                <jenkins.branch.BranchSource>
                   <source class=\"jenkins.plugins.git.GitSCMSource\" >
                      <id>gitcred</id>
-                     <remote>https://{{tenant}}@gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}</remote>
+                     <remote>https://{{to_kebab_case tenant}}@gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}</remote>
                      <credentialsId>scmcred</credentialsId>
                      <traits>
                         <jenkins.plugins.git.traits.BranchDiscoveryTrait/>

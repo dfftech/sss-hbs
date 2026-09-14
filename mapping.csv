@@ -1,0 +1,6 @@
+type,path,name,prefix,overwrite,hbs
+gitignore,.,.gitignore,,true,false
+cd-config,cd,config.yaml,,false,true
+cd-config,cd,cred.yaml,,false,true
+cd-ms,cd,deploy.yaml,{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.,false,true
+cd-ms,cd,svc.yaml,{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.,false,true

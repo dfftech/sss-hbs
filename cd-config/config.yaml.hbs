@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{to_kebab_case module}}-config
+  namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}
+data:
+  {{constantCase module}}_DB: ""
+  {{constantCase module}}_BASE_URL: ""

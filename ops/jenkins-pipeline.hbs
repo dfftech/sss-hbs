@@ -12,41 +12,41 @@ pipeline {
           echo "BuildBanch: ${env.BRANCH_NAME}:${env.BUILD_NUMBER}"
           def currentMonthYear = new Date().format('yyyy.MM')
           env.TAG_VERSION = "${currentMonthYear}.${env.BUILD_NUMBER}"
-          echo "Build ID: {{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+          echo "Build ID: {{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}:${TAG_VERSION}"
         }
       }
     }
     stage('Build Docker Image') {
       steps {
-        sh "docker build --target production . -t registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+        sh "docker build --target production . -t registry.gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}:${TAG_VERSION}"
       }
     }
     stage('Push Docker Image to Docker Hub') {
       steps {
          withCredentials([usernamePassword(credentialsId: 'scmcred', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
           sh "docker login registry.gitlab.com -u ${USERNAME} -p ${PASSWORD}"
-          sh "docker push registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+          sh "docker push registry.gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}:${TAG_VERSION}"
         }
       }
     }
     stage('Remove Docker Image') {
       steps {
-        sh "docker rmi registry.gitlab.com/{{tenant}}-{{module}}/{{module}}-{{name}}-{{type}}:${TAG_VERSION}"
+        sh "docker rmi registry.gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}:${TAG_VERSION}"
       }
     }
     stage('Update Manifest') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'scmcred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-          sh "rm -rf {{module}}-cd"
-          sh "git clone -b ${BRANCH_NAME} --single-branch https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd"
-          sh "cd {{module}}-cd"
-          dir("{{module}}-cd/{{module}}-{{name}}") {
-            sh "sed -i 's/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}.*/{{tenant}}-{{module}}\\/{{module}}-{{name}}-{{type}}:${TAG_VERSION}/g' {{module}}-{{name}}-{{type}}.deploy.yaml"
-            sh "git config user.email ci@{{tenant}}.com"
+          sh "rm -rf {{to_kebab_case module}}-cd"
+          sh "git clone -b ${BRANCH_NAME} --single-branch https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-cd"
+          sh "cd {{to_kebab_case module}}-cd"
+          dir("{{to_kebab_case module}}-cd/{{to_kebab_case module}}-{{to_kebab_case name}}") {
+            sh "sed -i 's/{{to_kebab_case tenant}}-{{to_kebab_case module}}\\/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.*/{{to_kebab_case tenant}}-{{to_kebab_case module}}\\/{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}:${TAG_VERSION}/g' {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.deploy.yaml"
+            sh "git config user.email ci@{{to_kebab_case tenant}}.com"
             sh "git config user.name devops"
             sh "git add ."
             sh "git commit -m 'Update image version to: ${TAG_VERSION}'"
-            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{tenant}}-{{module}}/{{module}}-cd -f"
+            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@gitlab.com/{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-cd -f"
           }
         }
       }

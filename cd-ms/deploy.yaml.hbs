@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}
   name: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}-deploy
-  namespace: {{to_kebab_case tenant}}-{{addon.ns}}
+  namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}
 spec:
   replicas: 1
   selector:
@@ -20,7 +20,7 @@ spec:
           imagePullPolicy: Always
           name: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}
           ports:
-            - containerPort: {{addon.port}}
+            - containerPort: 8080
               protocol: TCP
           envFrom:
             - configMapRef:

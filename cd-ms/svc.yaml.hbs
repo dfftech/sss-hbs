@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}
+  name: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}-svc
+  namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: {{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}
