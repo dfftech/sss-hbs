@@ -4,5 +4,5 @@ metadata:
   name: {{to_kebab_case module}}-config
   namespace: {{to_kebab_case tenant}}-{{addon.ns}}
 data:
-  {{constantCase module}}_DB: "{{addon.db}}"
-  {{constantCase module}}_BASE_URL: "{{addon.url}}"
+  {{to_screaming_snake_case module}}_DB: "{{addon.db}}"
+  {{to_screaming_snake_case module}}_BASE_URL: "{{addon.url}}"

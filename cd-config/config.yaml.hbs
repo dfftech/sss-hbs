@@ -4,5 +4,5 @@ metadata:
   name: {{to_kebab_case module}}-config
   namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}
 data:
-  {{constantCase module}}_DB: ""
-  {{constantCase module}}_BASE_URL: ""
+  {{to_screaming_snake_case module}}_DB: ""
+  {{to_screaming_snake_case module}}_BASE_URL: ""
