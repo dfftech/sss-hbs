@@ -4,5 +4,25 @@ metadata:
   name: {{to_kebab_case module}}-config
   namespace: {{to_kebab_case tenant}}-{{to_kebab_case module}}
 data:
-  {{to_screaming_snake_case module}}_DB: ""
-  {{to_screaming_snake_case module}}_BASE_URL: ""
+  {{to_screaming_snake_case module}}_DB_URL: "postgresql://{{to_screaming_snake_case module}}_user:Test1234@hosturl:5445/{{to_screaming_snake_case module}}?options='-c search_path=core'"
+  {{to_screaming_snake_case module}}_API_BASE_URL: "https://api-dev.{{to_kebab_case module}}.com/api"
+  {{to_screaming_snake_case module}}_API_JWT_SECRET: JkCxCsZzdsnU+KB2ralbVZBXtYu+PTNLHkriBiVluDiRUCNItKfJvyO7mI4mzFgZHj3l4VuHU4Hvc2OFK5CHdA==
+  {{to_screaming_snake_case module}}_API_JWT_KEY: {{to_kebab_case module}}_jwt_key
+  {{to_screaming_snake_case module}}_ACCESS_TOKEN: "{{to_kebab_case tenant}}+{{to_screaming_snake_case module}}+G5F399Z4"
+  {{to_screaming_snake_case module}}_MS_ACCESS_URL: "http://{{to_kebab_case module}}-access-ms-svc.{{to_kebab_case tenant}}-{{to_kebab_case module}}.svc.cluster.local"
+  {{to_screaming_snake_case module}}_MS_MAIN_URL: "http://{{to_kebab_case module}}-main-ms-svc.{{to_kebab_case tenant}}-{{to_kebab_case module}}.svc.cluster.local"
+  {{to_screaming_snake_case module}}_MS_SOR_URL: "http://{{to_kebab_case module}}-sor-ms-svc.{{to_kebab_case tenant}}-{{to_kebab_case module}}.svc.cluster.local"
+  {{to_screaming_snake_case module}}_MS_SETUP_URL: "http://{{to_kebab_case module}}-setup-ms-svc.{{to_kebab_case tenant}}-{{to_kebab_case module}}.svc.cluster.local"
+  {{to_screaming_snake_case module}}_KAFKA_BROKERS: "kafka-svc.{{to_kebab_case tenant}}-kafka.svc.cluster.local"
+  {{to_screaming_snake_case module}}_KAFKA_USERNAME: "admin"
+  {{to_screaming_snake_case module}}_KAFKA_PASSWORD: "Admin1234"
+  {{to_screaming_snake_case module}}_KAFKA_LOG_TOPIC: "{{to_kebab_case module}}-logs"
+  {{to_screaming_snake_case module}}_KAFKA_LOG_SEND: "false"
+  {{to_screaming_snake_case module}}_REDIS_HOST: "redis-12286.crce206.ap-south-1-1.ec2.cloud.redislabs.com"
+  {{to_screaming_snake_case module}}_REDIS_PORT: "12286"
+  {{to_screaming_snake_case module}}_REDIS_PASSWORD: ""
+  {{to_screaming_snake_case module}}_REDIS_USERNAME: "default"
+  REACT_APP_{{to_screaming_snake_case module}}_API_BASE_URL: "https://api-dev.{{to_kebab_case module}}.com/api"
+  REACT_APP_{{to_screaming_snake_case module}}_RAZORPAY_KEY_ID: rzp_test_1111
+  REACT_APP_{{to_screaming_snake_case module}}_RAZORPAY_KEY_SECRET: 1111
+  REACT_APP_{{to_screaming_snake_case module}}_GOOGLE_WEB_CLIENT_ID: "11111-1111.apps.googleusercontent.com"

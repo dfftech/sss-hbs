@@ -1,0 +1,70 @@
+import { Http } from 'dff-util';
+import AppStorage, { TENANT_ID, TOKEN, SESSION_INFO, PERSONA } from './app.storage';
+import {MsUrl} from '../../config/api.config'
+
+export default class AppHttp {
+  static MsUrl = MsUrl;
+
+  static BaseUrl() {
+    return Http.API_BASE_URL;
+  }
+
+  static async Load(id: string, params: Record<string, string | number | boolean>) {
+    const headers = {
+      ...AppHttp.Headers(),
+      ['Content-Type']: 'application/json',
+    };
+
+    return await Http.Get(MsUrl.sor + `/load/${id}`, params, headers);
+  }
+
+  static Headers() {
+    return {
+      ['Content-Type']: 'application/json',
+      authorization: AppStorage.getData(TOKEN) || null,
+      'x-tenant-id': AppStorage.getData(TENANT_ID) || null,
+      'x-persona': AppStorage.getData(PERSONA) || null,
+    };
+  }
+
+  static async Get(
+    url: string,
+    params: Record<string, string | number | boolean>,
+    customHeaders?: Record<string, string>,
+  ) {
+    const headers = {
+      ...AppHttp.Headers(),
+      ...customHeaders,
+    };
+
+    return await Http.Get(url, params, headers);
+  }
+
+  static async Post(url: string, params: unknown, customHeaders?: Record<string, string>) {
+    const headers = {
+      ...AppHttp.Headers(),
+      ...customHeaders,
+    };
+
+    return await Http.Post(url, params, headers);
+  }
+
+  static async Put(url: string, id: string, params: unknown, customHeaders?: Record<string, string>) {
+    const headers = {
+      ...AppHttp.Headers(),
+      ...customHeaders,
+    };
+
+
+    return await Http.Put(url + '/' + id, params, headers);
+  }
+
+  static async Delete(url: string, params: unknown, customHeaders?: Record<string, string>) {
+    const headers = {
+      ...AppHttp.Headers(),
+      ['Content-Type']: 'application/json',
+    };
+
+    return await Http.Delete(url, params, headers);
+  }
+}

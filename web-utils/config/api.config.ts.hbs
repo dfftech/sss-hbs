@@ -1,0 +1,25 @@
+export const ApiBaseUrl = AppStorage.envData('API_BASE_URL');
+
+export const MsUrl = {
+    auth: ApiBaseUrl + '/{{to_kebab_case module}}-auth',
+    sor: ApiBaseUrl + '/{{to_kebab_case module}}-sor',
+    base: ApiBaseUrl + '/{{to_kebab_case module}}-base',
+    api: ApiBaseUrl + '/{{to_kebab_case module}}-api',
+    events: ApiBaseUrl + '/{{to_kebab_case module}}-events',
+};
+
+export const ApiUrl = {
+  signIn: MsUrl.auth +'/auth-signin',
+  signUp: MsUrl.auth + '/auth-signup',
+  forgotPassword:  MsUrl.auth + '/auth-forgot-password',
+  resetPassword:  MsUrl.auth + '/auth-reset-password',
+  verifyOtp:  MsUrl.auth + '/auth-verify-otp',
+  sendOtp:  MsUrl.auth + '/auth-send-otp',
+  menuAccess:  MsUrl.base + '/menu-access-search',
+  menuGroupsSearch:  MsUrl.base + '/menu-groups-search',
+  menuGroupsCreate:  MsUrl.base + '/menu-groups-save',
+  menuLinksSearch:  MsUrl.base + '/menu-links-search',
+  menuLinksCreate:  MsUrl.base + '/menu-links-save',
+  menuRolesSearch:  MsUrl.base + '/menu-roles-search',
+  menuRolesCreate:  MsUrl.base + '/menu-roles-save'
+}
