@@ -6,8 +6,6 @@ build/
 .cache/
 coverage/
 .nyc_output/
-public/
-static/
 out/
 .next/
 .next/cache/
