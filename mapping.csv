@@ -8,3 +8,4 @@ web-utils,utils/service,app.storage.ts,,false,true
 web-utils,utils/service,app.http.ts,,false,true
 web-utils,config,api.config.ts,,false,true
 web-utils,public/assests,env-config.js,,false,true
+web-layout,public,world-map.svg,,false,false
