@@ -4,29 +4,20 @@ import { AppHttp } from "@/utils/services/app.http";
 import { MsUrl } from "@/config/api.config";
 import { ShowToast } from "@/utils/services/app.event";
 import { AppProps } from "@/utils/services/app.props";
-import { {{to_pascal_case name}}Type } from "./types";
+import { RequestBodyType, ResponseType } from "dff-util";
 
 export const {{to_camel_case name}}SaveIsLoading = signal(false);
 
-export const {{to_camel_case name}}SaveCall = async (params: {{to_pascal_case name}}Type) => {
+export const {{to_camel_case name}}SaveCall = async (
+  params: RequestBodyType,
+): Promise<ResponseType | undefined> => {
   try {
     {{to_camel_case name}}SaveIsLoading.value = true;
-    return await AppHttp.Post(MsUrl.base + "/{{to_kebab_case name}}/save", params);
-  } catch (error: unknown) {
-    const err = error as { error?: { message?: string } };
-    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
-  } finally {
-    {{to_camel_case name}}SaveIsLoading.value = false;
-  }
-};
-
-export const {{to_camel_case name}}StatusCall = async (params: {{to_pascal_case name}}Type) => {
-  try {
-    {{to_camel_case name}}SaveIsLoading.value = true;
-    return await AppHttp.Post(MsUrl.base + "/{{to_kebab_case name}}/save", {
-      ...params,
-      active: !params.active,
-    });
+    const resp = (await AppHttp.Post(
+      MsUrl.base + "/{{to_kebab_case name}}/save",
+      params,
+    )) as ResponseType;
+    return resp;
   } catch (error: unknown) {
     const err = error as { error?: { message?: string } };
     ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
