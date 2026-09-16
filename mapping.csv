@@ -87,7 +87,7 @@ web-ops,.,.gitlab-ci.yml,,false,true
 web-ops,.,.dockerignore,,false,false
 encore-ops,.,Dockerfile,,false,false
 encore-ops,.,.gitlab-ci.yml,,false,true
-web-module,modules/{{to_kebab_case name}},module.page.tsx,,false,true
+web-module,modules/{{to_kebab_case name}},page.tsx,{{to_kebab_case name}}.,false,true
 web-module,modules/{{to_kebab_case name}}/components,list.ts,{{to_kebab_case name}}.,false,true
 web-module,modules/{{to_kebab_case name}}/components,list.tsx,{{to_kebab_case name}}.,false,true
 web-module,modules/{{to_kebab_case name}}/components,form.ts,{{to_kebab_case name}}.,false,true
