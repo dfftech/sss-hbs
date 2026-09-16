@@ -27,7 +27,7 @@ web-skeletons,skeleton,skeleton-password-form.tsx,,false,true
 web-skeletons,skeleton,skeleton-reset-password-form.tsx,,false,true
 web-skeletons,skeleton,skeleton-signup-form.tsx,,false,true
 web-skeletons,skeleton,skeleton-table.tsx,,false,true
-web-skeletons,skeleton,skeleton-tenant-list.tsx,,false,true
+web-skeletons,skeleton,skeleton-list.tsx,,false,true
 web-layouts,layouts,article-layout.tsx,,false,true
 web-layouts,layouts,auth-layout.tsx,,false,true
 web-layouts,layouts,content-layout.tsx,,false,true
