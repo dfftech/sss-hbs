@@ -1,0 +1,422 @@
+'use client';
+
+import React, { useCallback, useEffect } from 'react';
+import { TypeSelect } from '@/types/type.select';
+import TypeIcon from '@/types/type.icon';
+import TypeButton from '@/types/type.button';
+import type { QueryGroup, QueryRule, QueryBuilderProps, QueryFieldOption } from './types';
+import {
+  cloneGroup,
+  addRule,
+  removeRule,
+  addGroup,
+  removeGroup,
+  toSqlString,
+  toJsonWithoutIdentifiers,
+} from './utils';
+
+import { Reorder, useDragControls } from 'framer-motion';
+
+const COMBINATOR_OPTIONS = [
+  { key: 'and', label: 'AND' },
+  { key: 'or', label: 'OR' },
+];
+
+interface RuleRowProps {
+  rule: QueryRule;
+  fields: QueryFieldOption[];
+  operators: { key: string; label: string; noValue?: boolean; disabled?: boolean }[];
+  valuePlaceholder?: string;
+  noValue?: boolean;
+  onChange: (r: QueryRule) => void;
+  onRemove: () => void;
+  readonly?: boolean;
+  rootLabel?: string;
+  dragControls?: { start: (e: React.PointerEvent) => void };
+}
+
+function RuleRow({
+  rule,
+  fields,
+  operators,
+  valuePlaceholder,
+  noValue,
+  onChange,
+  onRemove,
+  readonly,
+  dragControls,
+}: RuleRowProps) {
+  const fieldOptions = fields.map((f) => ({ key: f.key, label: f.label, disabled: f.disabled }));
+  const operatorOptions = operators.map((o) => ({
+    key: o.key,
+    label: o.label,
+    disabled: o.disabled,
+  }));
+
+  return (
+    <div className='flex items-center gap-3 py-1 group'>
+      <div className='flex-shrink-0 flex items-center gap-2'>
+        <div
+          className='text-slate-500 cursor-grab active:cursor-grabbing hover:text-slate-300 transition-colors'
+          onPointerDown={(e) => dragControls?.start(e)}
+        >
+          <TypeIcon name='GripVertical' size={16} />
+        </div>
+      </div>
+
+      <div className='grid grid-cols-[1.2fr_1fr_1.5fr_auto] flex-1 items-center gap-2'>
+        <div className='w-full'>
+          <TypeSelect
+            value={rule.field}
+            options={fieldOptions}
+            placeholder='Select field'
+            onChange={(value: unknown) => onChange({ ...rule, field: value as string })}
+            disabled={readonly}
+            hideLabel
+            className='bg-base-100 dark:bg-[#1a253d] border-base-300 dark:border-slate-700 text-base-content dark:text-slate-200 text-sm h-9 min-h-[36px]'
+          />
+        </div>
+        <div className='w-full'>
+          <TypeSelect
+            value={rule.operator}
+            options={operatorOptions}
+            placeholder='Operator'
+            onChange={(value) =>
+              onChange({
+                ...rule,
+                operator: value,
+                value: operators.find((o) => o.key === value)?.noValue ? true : rule.value,
+              })
+            }
+            disabled={readonly}
+            hideLabel
+            className='bg-base-100 dark:bg-[#1a253d] border-base-300 dark:border-slate-700 text-base-content dark:text-slate-200 text-sm h-9 min-h-[36px]'
+          />
+        </div>
+        {!noValue && (
+          <div className='w-full'>
+            {fields.find((f) => f.key === rule.field)?.valueType === 'select' ? (
+              <TypeSelect
+                value={String(rule.value ?? '')}
+                options={(fields.find((f) => f.key === rule.field) as QueryFieldOption)?.options || []}
+                onChange={(val) => onChange({ ...rule, value: val })}
+                disabled={readonly}
+                hideLabel
+                placeholder={valuePlaceholder ?? 'Select value'}
+                className='bg-base-100 dark:bg-[#1a253d] border-base-300 dark:border-slate-700 text-base-content dark:text-slate-200 text-sm h-9 min-h-[36px]'
+              />
+            ) : (
+              <input
+                type='text'
+                value={String(rule.value ?? '')}
+                onChange={(e) => onChange({ ...rule, value: e.target.value })}
+                placeholder={valuePlaceholder ?? 'Value'}
+                disabled={readonly}
+                className='input input-sm border-base-300 dark:border-slate-700 w-full text-base-content dark:text-slate-200 bg-base-100 dark:bg-[#1a253d] placeholder:text-base-content/50 dark:placeholder:text-slate-500 h-9'
+              />
+            )}
+          </div>
+        )}
+        {!readonly && (
+          <button
+            type='button'
+            onClick={onRemove}
+            className='btn btn-ghost btn-xs btn-square text-slate-500 hover:text-base-content dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10'
+            aria-label='Remove rule'
+          >
+            <TypeIcon name='X' size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ReorderableRuleRow(props: RuleRowProps) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item value={props.rule.id} dragControls={controls} dragListener={false}>
+      <RuleRow {...props} dragControls={controls} />
+    </Reorder.Item>
+  );
+}
+
+interface QueryGroupBlockProps {
+  group: QueryGroup;
+  path: string[];
+  fields: QueryFieldOption[];
+  operators: QueryBuilderProps['operators'];
+  valuePlaceholder?: string;
+  allowAddRule: boolean;
+  allowAddGroup: boolean;
+  readonly?: boolean;
+  rootLabel?: string;
+  isRoot: boolean;
+  onChange: (g: QueryGroup) => void;
+  onRemoveGroup?: () => void;
+  dragControls?: { start: (e: React.PointerEvent) => void };
+}
+
+function QueryGroupBlock({
+  group,
+  path,
+  fields,
+  operators,
+  valuePlaceholder,
+  allowAddRule,
+  allowAddGroup,
+  readonly,
+  rootLabel,
+  isRoot,
+  onChange,
+  onRemoveGroup,
+  dragControls,
+}: QueryGroupBlockProps) {
+  const updateGroup = useCallback(
+    (updater: (g: QueryGroup) => void) => {
+      const next = cloneGroup(group);
+      updater(next);
+      onChange(next);
+    },
+    [group, onChange],
+  );
+
+  const handleRuleChange = (id: string, rule: QueryRule) => {
+    updateGroup((g) => {
+      g.rules = g.rules.map((r) => (r.id === id ? rule : r));
+    });
+  };
+
+  const handleAddRule = () => {
+    updateGroup((g) => addRule(g));
+  };
+
+  const handleAddGroup = () => {
+    updateGroup((g) => addGroup(g, 'and'));
+  };
+
+  const handleRemoveRule = (ruleId: string) => {
+    updateGroup((g) => {
+      removeRule(g, ruleId);
+    });
+  };
+
+  const handleRemoveGroup = (groupId: string) => {
+    updateGroup((g) => removeGroup(g, groupId));
+  };
+
+  return (
+    <div
+      className={`rounded-lg transition-all ${isRoot ? 'p-0' : 'border border-base-300 dark:border-slate-700 bg-slate-300/40 dark:bg-[#16213a]/50 p-3 ml-6 mt-4 mb-2 relative'}`}
+    >
+      <div className='flex items-center justify-between gap-2 mb-3'>
+        <div className='flex items-center gap-2'>
+          {!isRoot && (
+            <div
+              className='text-slate-500 cursor-grab active:cursor-grabbing hover:text-slate-300 transition-colors'
+              onPointerDown={(e) => dragControls?.start(e)}
+            >
+              <TypeIcon name='GripVertical' size={16} />
+            </div>
+          )}
+          <div className='w-20'>
+            <TypeSelect
+              value={group.combinator || 'and'}
+              options={COMBINATOR_OPTIONS}
+              onChange={(val) => updateGroup((g) => { g.combinator = val as 'and' | 'or'; })}
+              disabled={readonly}
+              hideLabel
+              className='bg-base-100 dark:bg-[#1a253d] border-base-300 dark:border-slate-700 font-bold text-base-content dark:text-slate-300 uppercase text-xs h-8 min-h-[32px]'
+            />
+          </div>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          {!readonly && (
+            <div className='flex items-center gap-2'>
+              {allowAddRule && (
+                <TypeButton
+                  label='Rule'
+                  name='Plus'
+                  variant='flat'
+                  action='secondary'
+                  className='btn-sm h-8 min-h-[32px] text-[12px] font-bold dark:text-white text-black bg-secondary border-secondary/50'
+                  onPress={handleAddRule}
+                />
+              )}
+              {allowAddGroup && (
+                <TypeButton
+                  label='Group'
+                  name='Plus'
+                  variant='flat'
+                  action='secondary'
+                  className='btn-sm h-8 min-h-[32px] text-[12px] font-bold dark:text-white text-black bg-secondary border-secondary/50'
+                  onPress={handleAddGroup}
+                />
+              )}
+            </div>
+          )}
+          {!isRoot && onRemoveGroup && !readonly && (
+            <button
+              type='button'
+              onClick={onRemoveGroup}
+              className='btn btn-ghost btn-xs btn-square text-slate-500 hover:text-base-content dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10'
+              aria-label='Remove group'
+            >
+              <TypeIcon name='X' size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <Reorder.Group
+        axis='y'
+        values={[...group.rules, ...group.groups].map((item) => item.id)}
+        onReorder={(newOrder) => {
+          updateGroup((g) => {
+            const all = [...g.rules, ...g.groups];
+            const reordered = newOrder.map((id) => all.find((item) => item.id === id)!);
+            g.rules = reordered.filter((item): item is QueryRule => 'field' in item);
+            g.groups = reordered.filter((item): item is QueryGroup => 'rules' in item);
+          });
+        }}
+        className='space-y-1'
+      >
+        {group.rules.map((rule) => (
+          <ReorderableRuleRow
+            key={rule.id}
+            rule={rule}
+            fields={fields}
+            operators={operators}
+            valuePlaceholder={valuePlaceholder}
+            noValue={operators.find((o) => o.key === rule.operator)?.noValue}
+            onChange={(r) => handleRuleChange(rule.id, r)}
+            onRemove={() => handleRemoveRule(rule.id)}
+            readonly={readonly}
+            rootLabel={rootLabel}
+          />
+        ))}
+
+        {group.groups.map((sub) => (
+          <ReorderableGroupBlock
+            key={sub.id}
+            sub={sub}
+            path={[...path, sub.id]}
+            fields={fields}
+            operators={operators}
+            valuePlaceholder={valuePlaceholder}
+            allowAddRule={allowAddRule}
+            allowAddGroup={allowAddGroup}
+            readonly={readonly}
+            onChange={(updated) => {
+              updateGroup((g) => {
+                g.groups = g.groups.map((gr) => (gr.id === sub.id ? updated : gr));
+              });
+            }}
+            onRemoveGroup={() => handleRemoveGroup(sub.id)}
+          />
+        ))}
+      </Reorder.Group>
+    </div>
+  );
+}
+
+function ReorderableGroupBlock({
+  sub,
+  path,
+  fields,
+  operators,
+  valuePlaceholder,
+  allowAddRule,
+  allowAddGroup,
+  readonly,
+  onChange,
+  onRemoveGroup,
+}: {
+  sub: QueryGroup;
+  path: string[];
+  fields: QueryFieldOption[];
+  operators: QueryBuilderProps['operators'];
+  valuePlaceholder?: string;
+  allowAddRule: boolean;
+  allowAddGroup: boolean;
+  readonly?: boolean;
+  onChange: (updated: QueryGroup) => void;
+  onRemoveGroup: () => void;
+}) {
+  const controls = useDragControls();
+  return (
+    <Reorder.Item value={sub.id} dragControls={controls} dragListener={false}>
+      <QueryGroupBlock
+        group={sub}
+        path={path}
+        fields={fields}
+        operators={operators}
+        valuePlaceholder={valuePlaceholder}
+        allowAddRule={allowAddRule}
+        allowAddGroup={allowAddGroup}
+        readonly={readonly}
+        isRoot={false}
+        onChange={onChange}
+        onRemoveGroup={onRemoveGroup}
+        dragControls={controls}
+      />
+    </Reorder.Item>
+  );
+}
+
+export function QueryBuilder({
+  value,
+  onChange,
+  onDerivedChange,
+  fields,
+  operators,
+  valuePlaceholder,
+  allowAddRule = true,
+  allowAddGroup = true,
+  readonly = false,
+  rootLabel = 'Where',
+  className = '',
+}: QueryBuilderProps) {
+  const emitDerivedPayload = useCallback(
+    (group: QueryGroup) => {
+      if (!onDerivedChange) return;
+      const query = toSqlString(group);
+      const criteria = JSON.parse(toJsonWithoutIdentifiers(group)) as Record<string, unknown>;
+      onDerivedChange({ query, criteria });
+    },
+    [onDerivedChange],
+  );
+
+  const handleChange = useCallback(
+    (updated: QueryGroup) => {
+      onChange(updated);
+      emitDerivedPayload(updated);
+    },
+    [emitDerivedPayload, onChange],
+  );
+
+  useEffect(() => {
+    emitDerivedPayload(value);
+  }, [emitDerivedPayload, value]);
+
+  return (
+    <div className={`query-builder ${className}`}>
+      <QueryGroupBlock
+        group={value}
+        path={[]}
+        fields={fields}
+        operators={operators}
+        valuePlaceholder={valuePlaceholder}
+        allowAddRule={allowAddRule}
+        allowAddGroup={allowAddGroup}
+        readonly={readonly}
+        rootLabel={rootLabel}
+        isRoot={true}
+        onChange={handleChange}
+      />
+    </div>
+  );
+}
+
+export default QueryBuilder;

@@ -1,0 +1,32 @@
+import type { QueryFieldOption, QueryOperatorOption } from './types';
+
+/** Default operators for string/number/date (common across query builders) */
+export const DEFAULT_OPERATORS: QueryOperatorOption[] = [
+  { key: '=', label: 'equals' },
+  { key: '!=', label: 'does not equal' },
+  { key: '>', label: 'greater than' },
+  { key: '>=', label: 'greater or equal' },
+  { key: '<', label: 'less than' },
+  { key: '<=', label: 'less or equal' },
+  { key: 'contains', label: 'contains' },
+  { key: 'not_contains', label: 'does not contain' },
+  { key: 'in', label: 'in (comma separated)' },
+  { key: 'not_in', label: 'not in (comma separated)' },
+  { key: 'between', label: 'between (start,end)' },
+  { key: 'not_between', label: 'not between (start,end)' },
+  { key: 'beginsWith', label: 'begins with' },
+  { key: 'starts_with', label: 'starts with' },
+  { key: 'ends_with', label: 'ends with' },
+  { key: 'empty', label: 'is empty', noValue: true },
+  { key: 'not_empty', label: 'is not empty', noValue: true },
+];
+
+/** Example fields for segment/audience (can be overridden via props) */
+export const DEFAULT_SEGMENT_FIELDS: QueryFieldOption[] = [
+  { key: 'email', label: 'Email', valueType: 'string' },
+  { key: 'status', label: 'Status', valueType: 'string' },
+  { key: 'engagement', label: 'Engagement Level', valueType: 'string' },
+  { key: 'subscribed_at', label: 'Subscribed Date', valueType: 'date' },
+  { key: 'opens', label: 'Open Count', valueType: 'number' },
+  { key: 'clicks', label: 'Click Count', valueType: 'number' },
+];

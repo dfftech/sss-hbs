@@ -1,0 +1,117 @@
+import React from 'react';
+import Link from 'next/link';
+import TypeIcon from '@/types/type.icon';
+import { RouterChange } from '../services/app.event';
+import { AppRouter } from '../services/app.router';
+
+const FOOTER_SECTIONS = [
+  {
+    title: 'Product',
+    links: ['Features', 'Integrations', 'Pricing', 'Documentation']
+  },
+  {
+    title: 'Company',
+    links: ['About Us', 'Careers', 'Blog']
+  },
+  {
+    title: 'Resources',
+    links: ['Help Center', 'Community', 'Status']
+  },
+  {
+    title: 'Legal',
+    links: ['Privacy Policy', 'Terms of Service', 'Refund']
+  }
+];
+
+const SOCIAL_LINKS = [
+  { href: '#', iconName: 'Twitter' as const },
+  { href: '#', iconName: 'Facebook' as const },
+  { href: '#', iconName: 'Instagram' as const }
+];
+
+const FooterComponent = () => {
+  return (
+    <footer className="bg-base-100 border-t border-base-200 pt-20 pb-10">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 mb-16">
+          {/* Brand Column */}
+          <div className="lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-6 group">
+              <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-primary-content font-black text-2xl shadow-lg shadow-primary/20 group-hover:rotate-12 transition-all">
+                M
+              </div>
+              <span className="text-2xl font-black text-base-content tracking-tighter">MailNexo</span>
+            </Link>
+            <p className="text-base-content/60 max-w-xs mb-8 leading-relaxed font-medium">
+              MailNexo is the world&apos;s leading enterprise-grade multi-channel engagement platform.
+              Build, connect and send with our technology-powerful automation and cloud-native plugins.
+            </p>
+            <div className="flex gap-4">
+              {SOCIAL_LINKS.map((social, i) => (
+                <Link
+                  key={i}
+                  href={social.href}
+                  className="w-11 h-11 rounded-2xl bg-base-200 flex items-center justify-center text-base-content/60 hover:bg-primary hover:text-primary-content transition-all hover:-translate-y-1"
+                >
+                  <TypeIcon name={social.iconName} size={20} />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Links Columns */}
+          {FOOTER_SECTIONS.map((section) => (
+            <div key={section.title} className={section.title === 'Legal' ? 'hidden lg:block' : ''}>
+              <h4 className="font-bold text-base-content uppercase tracking-widest text-xs mb-6">{section.title}</h4>
+              <ul className="space-y-4">
+                {section.links.map((link) => (
+                  <li key={link}>
+                    <Link
+                      href="#"
+                      onClick={(e) => {
+                        if (link === 'Features') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.FEATURES_SECTION);
+                        } else if (link === 'Careers' || link === 'Help Center') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.CONTACT_US);
+                        } else if (link === 'About Us') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.ABOUT_US);
+                        } else if (link === 'Privacy Policy') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.PRIVACY_POLICY);
+                        } else if (link === 'Terms of Service') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.TERMS_OF_SERVICE);
+                        } else if (link === 'Refund') {
+                          e.preventDefault();
+                          RouterChange(AppRouter.REFUND_POLICY);
+                        }
+                      }}
+                      className="text-base-content/60 hover:text-primary transition-colors text-sm font-medium"
+                    >
+                      {link}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="pt-10 border-t-2 border-base-300 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-xs text-base-content/40 font-medium">
+            &copy; 2026 MailNexo Platform. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span className="text-[10px] font-black uppercase tracking-tighter text-base-content/40">Status: All Systems Operational</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default FooterComponent;

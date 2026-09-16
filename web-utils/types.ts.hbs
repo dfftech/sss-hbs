@@ -1,0 +1,69 @@
+/**
+ * Query Builder types – compatible with rule/group structure similar to
+ * Smart Querybuilder (e.g. htmlelements.com/react/demos/querybuilder/overview).
+ */
+
+export type QueryCombinator = 'and' | 'or';
+
+export interface QueryFieldOption {
+  key: string;
+  label: string;
+  /** Optional value type for operator/input behavior */
+  valueType?: 'string' | 'number' | 'boolean' | 'date' | 'select';
+  /** Options for 'select' valueType */
+  options?: { key: string; label: string }[];
+  disabled?: boolean;
+}
+
+export interface QueryOperatorOption {
+  key: string;
+  label: string;
+  /** Operators that don't require a value (e.g. "is empty") */
+  noValue?: boolean;
+  disabled?: boolean;
+}
+
+export interface QueryRule {
+  id: string;
+  field: string;
+  operator: string;
+  value: string | number | boolean;
+  combinator: QueryCombinator;
+}
+
+export interface QueryGroup {
+  id: string;
+  combinator: QueryCombinator;
+  rules: QueryRule[];
+  groups: QueryGroup[];
+}
+
+export type QueryBuilderValue = QueryGroup;
+
+export interface QueryBuilderDerivedPayload {
+  query: string;
+  criteria: Record<string, unknown>;
+}
+
+export interface QueryBuilderProps {
+  /** Available fields (column/attribute names) */
+  fields: QueryFieldOption[];
+  /** Available operators per field or global */
+  operators: QueryOperatorOption[];
+  /** Current value (controlled) */
+  value: QueryBuilderValue;
+  /** Called when the query structure changes */
+  onChange: (value: QueryBuilderValue) => void;
+  /** Optional: receives SQL query + JSON criteria derived by QueryBuilder */
+  onDerivedChange?: (payload: QueryBuilderDerivedPayload) => void;
+  /** Optional: custom placeholder for value input */
+  valuePlaceholder?: string;
+  /** Optional: show/hide "Add rule" and "Add group" */
+  allowAddRule?: boolean;
+  allowAddGroup?: boolean;
+  /** Optional: readonly mode */
+  readonly?: boolean;
+  /** Optional: root combinator label (e.g. "Where") */
+  rootLabel?: string;
+  className?: string;
+}

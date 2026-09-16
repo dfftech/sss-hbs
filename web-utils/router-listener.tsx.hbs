@@ -1,0 +1,41 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSignals } from '@preact/signals-react/runtime';
+import { effect } from '@preact/signals-react';
+import { RouterEvent } from '@/utils/services/app.event';
+
+export const RouterListener = () => {
+  useSignals();
+  const router = useRouter();
+
+  useEffect(() => {
+    const dispose = effect(() => {
+      const { pathname, query } = RouterEvent.value;
+
+      if (pathname) {
+        // Construct URL with query params if they exist
+        let url = pathname;
+        if (query && Object.keys(query).length > 0) {
+          const searchParams = new URLSearchParams(query);
+          url = `${pathname}?${searchParams.toString()}`;
+        }
+
+        router.push(url);
+
+        // Reset the signal after a small delay to prevent canceling the current effect
+        // or dropping the push command in Next.js router
+        setTimeout(() => {
+          if (RouterEvent.value.pathname === pathname) {
+            RouterEvent.value = { pathname: '', query: {} };
+          }
+        }, 50);
+      }
+    });
+
+    return () => dispose();
+  }, [router]);
+
+  return null;
+};

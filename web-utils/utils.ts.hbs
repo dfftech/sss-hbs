@@ -1,0 +1,189 @@
+import type { QueryGroup, QueryRule } from './types';
+
+const id = () => `qb_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+/** Create a new empty rule */
+export function createRule(overrides?: Partial<QueryRule>): QueryRule {
+  return {
+    id: id(),
+    field: '',
+    operator: '=',
+    value: '',
+    combinator: 'and',
+    ...overrides,
+  };
+}
+
+/** Create a new group with one empty rule */
+export function createGroup(combinator: 'and' | 'or' = 'and'): QueryGroup {
+  return {
+    id: id(),
+    combinator,
+    rules: [createRule()],
+    groups: [],
+  };
+}
+
+/** Create the initial root value for the query builder */
+export function createInitialValue(): QueryGroup {
+  return createGroup('and');
+}
+
+/** Add a rule to a group (mutates and returns the same group) */
+export function addRule(group: QueryGroup, rule?: Partial<QueryRule>): QueryGroup {
+  group.rules = [...group.rules, rule ? { ...createRule(), ...rule } : createRule()];
+  return group;
+}
+
+/** Remove a rule by id from a group (recursive) */
+export function removeRule(group: QueryGroup, ruleId: string): QueryGroup {
+  group.rules = group.rules.filter((r) => r.id !== ruleId);
+  group.groups = group.groups.map((g) => removeRule(g, ruleId));
+  return group;
+}
+
+/** Add a nested group */
+export function addGroup(parent: QueryGroup, combinator: 'and' | 'or' = 'and'): QueryGroup {
+  parent.groups = [...parent.groups, createGroup(combinator)];
+  return parent;
+}
+
+/** Remove a group by id (recursive) */
+export function removeGroup(group: QueryGroup, groupId: string): QueryGroup {
+  group.groups = group.groups.filter((g) => g.id !== groupId).map((g) => removeGroup(g, groupId));
+  return group;
+}
+
+/** Deep clone for immutable updates */
+export function cloneGroup(group: QueryGroup): QueryGroup {
+  return {
+    ...group,
+    rules: group.rules.map((r) => ({ ...r })),
+    groups: group.groups.map((g) => cloneGroup(g)),
+  };
+}
+
+/** Serialize to a human-readable string (e.g. "(email equals 'x' AND status equals 'active')") */
+export function toReadableString(group: QueryGroup, level = 0): string {
+  const parts: string[] = [];
+  const comb = group.combinator.toUpperCase();
+  for (const rule of group.rules) {
+    if (rule.field && rule.operator) {
+      const val = rule.value === '' ? '?' : JSON.stringify(rule.value);
+      parts.push(`(${rule.field} ${rule.operator} ${val})`);
+    }
+  }
+  for (const g of group.groups) {
+    parts.push(`(${toReadableString(g, level + 1)})`);
+  }
+  return parts.join(` ${comb} `);
+}
+
+type QueryWithoutIdentifiersRule = {
+  field: string;
+  operator: string;
+  value: string | number | boolean;
+  valueSource?: 'value' | 'field';
+};
+
+type QueryWithoutIdentifiersGroup = {
+  combinator: 'and' | 'or';
+  not: boolean;
+  rules: Array<QueryWithoutIdentifiersRule | QueryWithoutIdentifiersGroup>;
+};
+
+function inferScalar(value: string | number | boolean): string | number | boolean {
+  if (typeof value !== 'string') return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.toLowerCase() === 'true') return true;
+  if (trimmed.toLowerCase() === 'false') return false;
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+
+  return trimmed;
+}
+
+function escapeSqlString(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
+function formatSqlValue(value: string | number | boolean): string {
+  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
+  if (typeof value === 'number') return String(value);
+  return `'${escapeSqlString(value)}'`;
+}
+
+function ruleToSql(rule: QueryRule): string | null {
+  if (!rule.field || !rule.operator) return null;
+
+  const operator = rule.operator;
+  const scalarValue = inferScalar(rule.value);
+  const field = rule.field;
+
+  return `${field} ${operator} ${formatSqlValue(scalarValue)}`;
+}
+
+function groupToSql(group: QueryGroup): string {
+  const parts: string[] = [];
+  const combinator = group.combinator || 'and';
+
+  group.rules.forEach((rule) => {
+    const sql = ruleToSql(rule);
+    if (sql) {
+      parts.push(sql);
+    }
+  });
+
+  group.groups.forEach((nested) => {
+    const nestedSql = groupToSql(nested);
+    if (nestedSql) {
+      parts.push(nestedSql);
+    }
+  });
+
+  const joined = parts.join(` ${combinator} `);
+  return joined ? `(${joined})` : '';
+}
+
+function groupToJsonWithoutIdentifiers(group: QueryGroup): QueryWithoutIdentifiersGroup {
+  const next: QueryWithoutIdentifiersGroup = {
+    combinator: group.combinator,
+    not: false,
+    rules: [],
+  };
+
+  for (const rule of group.rules) {
+    if (!rule.field || !rule.operator) continue;
+    next.rules.push({
+      field: rule.field,
+      operator: rule.operator,
+      value: inferScalar(rule.value),
+      combinator: rule.combinator,
+    });
+  }
+
+  for (const nested of group.groups) {
+    next.rules.push(groupToJsonWithoutIdentifiers(nested));
+  }
+
+  return next;
+}
+
+/** Convert query group to SQL expression string. */
+export function toSqlString(group: QueryGroup): string {
+  return groupToSql(group);
+}
+
+/** Convert query group to JSON format without internal identifiers. */
+export function toJsonWithoutIdentifiers(group: QueryGroup): string {
+  return JSON.stringify(groupToJsonWithoutIdentifiers(group), null, 2);
+}
+
+/** Check if the root group has any meaningful rules (at least one rule with field + operator) */
+export function hasRules(group: QueryGroup): boolean {
+  const hasInGroup = group.rules.some((r) => r.field && r.operator);
+  const hasInNested = group.groups.some(hasRules);
+  return hasInGroup || hasInNested;
+}
