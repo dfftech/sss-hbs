@@ -100,4 +100,4 @@ web-module,modules/{{to_kebab_case name}}/hooks,validation.ts,,false,true
 web-module,modules/{{to_kebab_case name}}/hooks,edit-mode.ts,,false,true
 web-module,modules/{{to_kebab_case name}}/hooks,service.list.ts,,false,true
 web-module,modules/{{to_kebab_case name}}/hooks,service.save.ts,,false,true
-web-module,modules/{{to_kebab_case name}}/hooks,service.id.ts,,false,true
+web-module,modules/{{to_kebab_case name}}/hooks,service.entity.ts,,false,true

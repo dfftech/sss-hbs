@@ -4,7 +4,7 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { useTranslation } from "react-i18next";
 import { ScreenAccess } from "@/utils/services/app.event";
 import { getDefault{{to_pascal_case name}} } from "../hooks/data";
-import { {{to_camel_case name}}GetIdCall } from "../hooks/service.id";
+import { {{to_camel_case name}}EntityCall } from "../hooks/service.entity";
 import {
   editModeUpdate,
   Selected{{to_pascal_case name}},
@@ -22,7 +22,7 @@ export function use{{to_pascal_case name}}View() {
   useEffect(() => {
     const load = async () => {
       if ({{to_camel_case name}}SelectedId.value) {
-        const row = await {{to_camel_case name}}GetIdCall({{to_camel_case name}}SelectedId.value);
+        const row = await {{to_camel_case name}}EntityCall({{to_camel_case name}}SelectedId.value);
         if (row) {
           Selected{{to_pascal_case name}}.value = row;
           reset(row);

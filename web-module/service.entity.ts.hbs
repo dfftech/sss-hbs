@@ -7,13 +7,13 @@ import { AppProps } from "@/utils/services/app.props";
 import { RequestByIdType, ResponseType } from "dff-util";
 import { {{to_pascal_case name}}Type } from "./types";
 
-export const {{to_camel_case name}}GetIdIsLoading = signal(false);
+export const {{to_camel_case name}}EntityIsLoading = signal(false);
 
-export const {{to_camel_case name}}GetIdCall = async (
+export const {{to_camel_case name}}EntityCall = async (
   id: RequestByIdType["id"],
 ): Promise<{{to_pascal_case name}}Type | undefined> => {
   try {
-    {{to_camel_case name}}GetIdIsLoading.value = true;
+    {{to_camel_case name}}EntityIsLoading.value = true;
     const resp = (await AppHttp.Get(
       MsUrl.api + "/{{to_kebab_case name}}/" + id,
       {},
@@ -23,6 +23,6 @@ export const {{to_camel_case name}}GetIdCall = async (
     const err = error as { error?: { message?: string } };
     ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
   } finally {
-    {{to_camel_case name}}GetIdIsLoading.value = false;
+    {{to_camel_case name}}EntityIsLoading.value = false;
   }
 };
