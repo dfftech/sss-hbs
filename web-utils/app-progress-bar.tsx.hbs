@@ -3,11 +3,11 @@ import React from "react";
 // import { ProgressBar } from "@/util/app.event";
 import { useSignals } from "@preact/signals-react/runtime";
 
-import PageLoader from "./page-loading";
+import { PageLoader } from "./page-loading";
 
 import { ProgressBar } from "@/utils/services/app.event";
 
-export default function AppProgressBar() {
+export function AppProgressBar() {
   useSignals();
 
   return ProgressBar.value && <PageLoader />;

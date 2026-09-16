@@ -9,7 +9,7 @@ import { SessionToken } from '@/utils/services/app.event';
 import { NonAuthRoutes } from '@/utils/services/app.router';
 import { initTheme, deviceSignal } from '@/utils/theme/theme.service';
 
-export default function DefaultLayout({ children }: { children: React.ReactNode }) {
+export function DefaultLayout({ children }: { children: React.ReactNode }) {
   useSignals();
 
   const [mounted, setMounted] = React.useState(false);

@@ -1,0 +1,100 @@
+import { useCallback, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { useSignals } from "@preact/signals-react/runtime";
+import { useTranslation } from "react-i18next";
+import { getDefault{{to_pascal_case name}}, {{to_camel_case name}}InitValues } from "../hooks/data";
+import { {{to_camel_case name}}Validation } from "../hooks/validation";
+import { {{to_camel_case name}}GetIdCall } from "../hooks/service.id";
+import { {{to_camel_case name}}SaveCall, {{to_camel_case name}}SaveIsLoading } from "../hooks/service.save";
+import {
+  editModeUpdate,
+  Selected{{to_pascal_case name}},
+  {{to_camel_case name}}SelectedId,
+} from "../hooks/edit-mode";
+import { {{to_pascal_case name}}Type } from "../hooks/types";
+
+export function use{{to_pascal_case name}}Form() {
+  useSignals();
+  const { t } = useTranslation();
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<{{to_pascal_case name}}Type>({
+    defaultValues: getDefault{{to_pascal_case name}}(),
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      if ({{to_camel_case name}}SelectedId.value) {
+        const row = await {{to_camel_case name}}GetIdCall({{to_camel_case name}}SelectedId.value);
+        if (row) {
+          Selected{{to_pascal_case name}}.value = row;
+          reset(row);
+          return;
+        }
+      }
+      reset(Selected{{to_pascal_case name}}.value || getDefault{{to_pascal_case name}}());
+    };
+    load();
+  }, [{{to_camel_case name}}SelectedId.value, reset]);
+
+  const onCancel = useCallback(() => {
+    editModeUpdate(undefined);
+  }, []);
+
+  const onSubmit = useCallback(
+    async (values: {{to_pascal_case name}}Type) => {
+      const resp = await {{to_camel_case name}}SaveCall(values);
+      if (resp) editModeUpdate(undefined);
+    },
+    [],
+  );
+
+  const nameProps = useMemo(
+    () => ({
+      control,
+      name: "name",
+      label: t("name"),
+      rules: {{to_camel_case name}}Validation.name,
+      error: errors.name,
+      className: "w-full mb-3",
+    }),
+    [t, control, errors.name],
+  );
+
+  const activeProps = useMemo(
+    () => ({
+      control,
+      name: "active",
+      label: t("active"),
+      className: "w-full mb-3",
+    }),
+    [t, control],
+  );
+
+  const cancelProps = useMemo(
+    () => ({
+      action: "secondary" as const,
+      label: t("cancel"),
+      name: "CircleX" as const,
+      onPress: onCancel,
+    }),
+    [t, onCancel],
+  );
+
+  const saveProps = useMemo(
+    () => ({
+      action: "primary" as const,
+      label: t("save"),
+      name: "Save" as const,
+      htmlType: "button" as const,
+      isLoading: {{to_camel_case name}}SaveIsLoading.value,
+      onPress: handleSubmit(onSubmit),
+    }),
+    [t, handleSubmit, onSubmit, {{to_camel_case name}}SaveIsLoading.value],
+  );
+
+  return { nameProps, activeProps, cancelProps, saveProps, defaultValues: {{to_camel_case name}}InitValues };
+}

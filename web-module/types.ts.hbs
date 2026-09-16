@@ -1,0 +1,17 @@
+export type {{to_pascal_case name}}Type = {
+  id: string;
+  name: string;
+  active: boolean;
+};
+
+export type {{to_pascal_case name}}ListParams = {
+  startRow?: number;
+  endRow?: number;
+  search?: string;
+  active?: boolean | "";
+};
+
+export type {{to_pascal_case name}}ListResult = {
+  data: {{to_pascal_case name}}Type[];
+  total: number;
+};

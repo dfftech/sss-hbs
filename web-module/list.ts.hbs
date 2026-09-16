@@ -1,0 +1,89 @@
+import { useCallback, useMemo, useState } from "react";
+import { useSignals } from "@preact/signals-react/runtime";
+import { useTranslation } from "react-i18next";
+import { ScreenAccess } from "@/utils/services/app.event";
+import { {{to_camel_case name}}StatusCall } from "../hooks/service.save";
+import { {{to_pascal_case name}}Type } from "../hooks/types";
+import { editModeUpdate } from "../hooks/edit-mode";
+
+export function use{{to_pascal_case name}}List() {
+  useSignals();
+  const { t } = useTranslation();
+  const [search, setSearch] = useState("");
+  const [activeOnly, setActiveOnly] = useState(false);
+
+  const onReload = useCallback(() => {}, []);
+
+  const onSearch = useCallback((value: string) => {
+    setSearch(value);
+  }, []);
+
+  const onStatus = useCallback((value: boolean) => {
+    setActiveOnly(value);
+  }, []);
+
+  const handleAction = useCallback(
+    async (row: {{to_pascal_case name}}Type, action: "edit" | "status") => {
+      if (action === "edit") {
+        editModeUpdate(row.id, "edit");
+        return;
+      }
+      if (action === "status") {
+        await {{to_camel_case name}}StatusCall(row);
+      }
+    },
+    [],
+  );
+
+  const searchProps = useMemo(
+    () => ({
+      name: "search",
+      label: t("search"),
+      value: search,
+      onChange: onSearch,
+    }),
+    [t, search, onSearch],
+  );
+
+  const {{to_camel_case name}}StatusProps = useMemo(
+    () => ({
+      name: "status",
+      label: t("status"),
+      checked: activeOnly,
+      onChange: onStatus,
+    }),
+    [t, activeOnly, onStatus],
+  );
+
+  const reloadProps = useMemo(
+    () => ({
+      action: "secondary" as const,
+      label: t("reload"),
+      name: "RefreshCcw" as const,
+      onPress: onReload,
+    }),
+    [t, onReload],
+  );
+
+  const addProps = useMemo(
+    () => ({
+      action: "primary" as const,
+      label: t("add"),
+      name: "Plus" as const,
+      disabled: !ScreenAccess.value.create,
+      onPress: () => editModeUpdate(undefined, "add"),
+    }),
+    [t],
+  );
+
+  return {
+    t,
+    search,
+    activeOnly,
+    searchProps,
+    {{to_camel_case name}}StatusProps,
+    reloadProps,
+    addProps,
+    handleAction,
+  };
+}

@@ -1,0 +1,50 @@
+import { signal } from "@preact/signals-react";
+import { getDefault{{to_pascal_case name}} } from "./data";
+import { {{to_pascal_case name}}Type } from "./types";
+import { AppStorage, SCREEN_ACTION } from "@/utils/services/app.storage";
+
+export const {{to_camel_case name}}IsPopupOpen = signal(false);
+export const {{to_camel_case name}}IsEditMode = signal(false);
+export const {{to_camel_case name}}SelectedId = signal<string | undefined>(undefined);
+export const Selected{{to_pascal_case name}} = signal<{{to_pascal_case name}}Type | null>(null);
+
+export const applyScreenAction = () => {
+  const action = String(AppStorage.getData(SCREEN_ACTION) || "{{to_kebab_case name}}:list");
+  const [, kind, id] = action.split(":");
+  if (!kind || kind === "list") {
+    editModeUpdate(undefined);
+    return;
+  }
+  if (kind === "view") {
+    editModeUpdate(id || undefined);
+    return;
+  }
+  if (kind === "form") {
+    if (!id) editModeUpdate(undefined, "add");
+    else editModeUpdate(id, "edit");
+  }
+};
+
+export const editModeUpdate = async (id?: string, mode?: "edit" | "add") => {
+  if (mode === "add") {
+    Selected{{to_pascal_case name}}.value = getDefault{{to_pascal_case name}}();
+    {{to_camel_case name}}SelectedId.value = undefined;
+    {{to_camel_case name}}IsEditMode.value = true;
+    {{to_camel_case name}}IsPopupOpen.value = true;
+    AppStorage.setData(SCREEN_ACTION, "{{to_kebab_case name}}:form");
+  } else if (id) {
+    {{to_camel_case name}}SelectedId.value = id;
+    {{to_camel_case name}}IsEditMode.value = mode === "edit";
+    {{to_camel_case name}}IsPopupOpen.value = true;
+    AppStorage.setData(
+      SCREEN_ACTION,
+      mode === "edit" ? `{{to_kebab_case name}}:form:${id}` : `{{to_kebab_case name}}:view:${id}`,
+    );
+  } else {
+    {{to_camel_case name}}SelectedId.value = undefined;
+    {{to_camel_case name}}IsEditMode.value = false;
+    {{to_camel_case name}}IsPopupOpen.value = false;
+    Selected{{to_pascal_case name}}.value = null;
+    AppStorage.setData(SCREEN_ACTION, "{{to_kebab_case name}}:list");
+  }
+};

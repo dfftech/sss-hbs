@@ -1,8 +1,8 @@
 import { ICellRendererParams } from 'ag-grid-community';
 import React from 'react';
 import { ScreenAccess } from '@/utils/services/app.event';
-import TypeSwitch from '@/types/type.switch';
-import TypeIcon from '@/types/type.icon';
+import { TypeSwitch } from '@/types/type.switch';
+import { TypeIcon } from '@/types/type.icon';
 
 interface ActionCellRendererProps extends ICellRendererParams {
   onAction: (data: Record<string, unknown>, action: 'edit' | 'status') => void;
@@ -51,4 +51,4 @@ const ActionCellRenderer: React.FC<ActionCellRendererProps> = ({ data, onAction 
   );
 };
 
-export default ActionCellRenderer;
+export { ActionCellRenderer };

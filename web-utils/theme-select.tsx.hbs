@@ -2,7 +2,7 @@ import { initTheme, setTheme, themeSignal } from './theme.service';
 import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect } from "react";
 
-export default function ThemeSelect() {
+export function ThemeSelect() {
   useSignals();
   useEffect(() => {
     initTheme();

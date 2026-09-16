@@ -3,11 +3,11 @@
 import React from 'react';
 import { useSignals } from '@preact/signals-react/runtime';
 import { setTheme, themeSignal } from '@/utils/theme/theme.service';
-import TypeIcon from '@/types/type.icon';
+import { TypeIcon } from '@/types/type.icon';
 import { TypeDrawer } from '@/types/type.drawer';
 import { SessionToken, RouterChange } from '@/utils/services/app.event';
 import { AppRouter } from '@/utils/services/app.router';
-import AppStorage, { SESSION_INFO } from '../services/app.storage';
+import { AppStorage, SESSION_INFO } from '../services/app.storage';
 
 export const Navbar = ({}: { onToggle?: () => void }) => {
   useSignals();

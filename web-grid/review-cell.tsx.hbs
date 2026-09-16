@@ -1,6 +1,6 @@
 import React from 'react';
 import { ICellRendererParams } from 'ag-grid-community';
-import TypeIcon from '@/types/type.icon';
+import { TypeIcon } from '@/types/type.icon';
 
 interface ReviewCellRendererProps extends ICellRendererParams {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,4 +30,4 @@ const ReviewCellRenderer: React.FC<ReviewCellRendererProps> = ({ data, onAction 
     );
 };
 
-export default ReviewCellRenderer;
+export { ReviewCellRenderer };

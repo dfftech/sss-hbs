@@ -1,0 +1,83 @@
+import { useCallback, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { useSignals } from "@preact/signals-react/runtime";
+import { useTranslation } from "react-i18next";
+import { ScreenAccess } from "@/utils/services/app.event";
+import { getDefault{{to_pascal_case name}} } from "../hooks/data";
+import { {{to_camel_case name}}GetIdCall } from "../hooks/service.id";
+import {
+  editModeUpdate,
+  Selected{{to_pascal_case name}},
+  {{to_camel_case name}}SelectedId,
+} from "../hooks/edit-mode";
+import { {{to_pascal_case name}}Type } from "../hooks/types";
+
+export function use{{to_pascal_case name}}View() {
+  useSignals();
+  const { t } = useTranslation();
+  const { control, reset } = useForm<{{to_pascal_case name}}Type>({
+    defaultValues: getDefault{{to_pascal_case name}}(),
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      if ({{to_camel_case name}}SelectedId.value) {
+        const row = await {{to_camel_case name}}GetIdCall({{to_camel_case name}}SelectedId.value);
+        if (row) {
+          Selected{{to_pascal_case name}}.value = row;
+          reset(row);
+        }
+      }
+    };
+    load();
+  }, [{{to_camel_case name}}SelectedId.value, reset]);
+
+  const onCancel = useCallback(() => {
+    editModeUpdate(undefined);
+  }, []);
+
+  const nameProps = useMemo(
+    () => ({
+      control,
+      name: "name",
+      label: t("name"),
+      disabled: true,
+      className: "w-full mb-3",
+    }),
+    [t, control],
+  );
+
+  const activeProps = useMemo(
+    () => ({
+      control,
+      name: "active",
+      label: t("active"),
+      disabled: true,
+      className: "w-full mb-3",
+    }),
+    [t, control],
+  );
+
+  const cancelProps = useMemo(
+    () => ({
+      action: "secondary" as const,
+      label: t("cancel"),
+      name: "CircleX" as const,
+      onPress: onCancel,
+    }),
+    [t, onCancel],
+  );
+
+  const editActionProps = useMemo(
+    () => ({
+      action: "primary" as const,
+      label: t("edit"),
+      name: "SquarePen" as const,
+      disabled: !ScreenAccess.value.update,
+      onPress: () => editModeUpdate({{to_camel_case name}}SelectedId.value, "edit"),
+    }),
+    [t],
+  );
+
+  return { nameProps, activeProps, cancelProps, editActionProps };
+}

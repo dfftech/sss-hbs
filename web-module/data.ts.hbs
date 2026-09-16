@@ -1,0 +1,11 @@
+import { {{to_pascal_case name}}Type } from "./types";
+
+export const {{to_camel_case name}}InitValues: {{to_pascal_case name}}Type = {
+  id: "",
+  name: "",
+  active: true,
+};
+
+export const getDefault{{to_pascal_case name}} = (): {{to_pascal_case name}}Type => ({
+  ...{{to_camel_case name}}InitValues,
+});

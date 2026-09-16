@@ -1,0 +1,27 @@
+import { signal } from "@preact/signals-react";
+import { t } from "i18next";
+import { AppHttp } from "@/utils/services/app.http";
+import { MsUrl } from "@/config/api.config";
+import { ShowToast } from "@/utils/services/app.event";
+import { AppProps } from "@/utils/services/app.props";
+import { {{to_pascal_case name}}ListParams, {{to_pascal_case name}}ListResult, {{to_pascal_case name}}Type } from "./types";
+
+export const {{to_camel_case name}}ListIsLoading = signal(false);
+
+export const {{to_camel_case name}}ListCall = async (
+  params: {{to_pascal_case name}}ListParams,
+): Promise<{{to_pascal_case name}}ListResult | undefined> => {
+  try {
+    {{to_camel_case name}}ListIsLoading.value = true;
+    const resp = await AppHttp.Get(MsUrl.api + "/{{to_kebab_case name}}/search", params as Record<string, string | number | boolean>);
+    return {
+      data: Array.isArray(resp?.data) ? (resp.data as {{to_pascal_case name}}Type[]) : [],
+      total: Number((resp as { total?: number })?.total || 0),
+    };
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}ListIsLoading.value = false;
+  }
+};

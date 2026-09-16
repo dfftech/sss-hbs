@@ -3,11 +3,12 @@ import { useSignals } from '@preact/signals-react/runtime';
 import React, { useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 
-import TypeButton from '@/types/type.button';
-// import TypeIcon from '@/types/type.icon';
+import { TypeButton } from '@/types/type.button';
+// import { TypeIcon } from '@/types/type.icon';
 import { ShowToast } from '@/utils/services/app.event';
-import AppHttp, { ApiUrl, MsUrl } from '@/utils/services/app.http';
-import OtpInput from '@/utils/components/otp-input';
+import { AppHttp } from '@/utils/services/app.http';
+import { ApiUrl, MsUrl } from '@/config/api.config';
+import { OtpInput } from '@/utils/components/otp-input';
 
 /* ------------------------------------------------------------------ */
 /* TYPES */
@@ -334,4 +335,4 @@ export const AppOtp: React.FC<AppOtpProps> = ({ onOtpCallback, onCancel }) => {
   );
 };
 
-export default AppOtp;
+export { AppOtp };

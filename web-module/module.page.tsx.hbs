@@ -1,0 +1,47 @@
+"use client";
+
+import { useEffect } from "react";
+import { useSignals } from "@preact/signals-react/runtime";
+import {
+  applyScreenAction,
+  editModeUpdate,
+  {{to_camel_case name}}IsEditMode,
+  {{to_camel_case name}}IsPopupOpen,
+} from "./hooks/edit-mode";
+import { {{to_pascal_case name}}Form } from "./components/{{to_kebab_case name}}.form";
+import { {{to_pascal_case name}}List } from "./components/{{to_kebab_case name}}.list";
+import { {{to_pascal_case name}}View } from "./components/{{to_kebab_case name}}.view";
+
+export function {{to_pascal_case name}}Page() {
+  useSignals();
+  useEffect(() => {
+    applyScreenAction();
+  }, []);
+  return (
+    <>
+      <{{to_pascal_case name}}List />
+      {({{to_camel_case name}}IsPopupOpen.value) && (
+        <div className="modal modal-open">
+          <div
+            className="modal-backdrop"
+            role="button"
+            tabIndex={0}
+            onClick={() => editModeUpdate(undefined)}
+            onKeyDown={(e) =>
+              (e.key === "Enter" || e.key === " ") && editModeUpdate(undefined)
+            }
+          />
+          <div className="modal-box fixed right-0 top-0 h-screen w-full max-w-4xl rounded-none p-0">
+            <div className="h-full overflow-y-auto p-6">
+              {({{to_camel_case name}}IsEditMode.value) ? (
+                <{{to_pascal_case name}}Form />
+              ) : (
+                <{{to_pascal_case name}}View />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

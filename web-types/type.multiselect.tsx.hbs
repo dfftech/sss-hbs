@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Control, Controller, ControllerRenderProps, FieldError, FieldValues, RegisterOptions } from 'react-hook-form';
-import TypeIcon from './type.icon';
+import { TypeIcon } from './type.icon';
 
 export type MultiSelectOption = {
     key: string;
@@ -172,4 +172,3 @@ export const TypeMultiselect: React.FC<TypeMultiSelectProps> = ({
     );
 };
 
-export default TypeMultiselect;

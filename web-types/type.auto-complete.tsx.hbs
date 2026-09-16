@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Controller, Control, ControllerRenderProps, FieldValues } from 'react-hook-form';
-import TypeIcon from '@/types/type.icon';
+import { TypeIcon } from '@/types/type.icon';
 
 export type AutoCompleteOption = {
   key: string;
@@ -204,4 +204,4 @@ const TypeAutoComplete: React.FC<TypeAutoCompleteProps> = ({
   );
 };
 
-export default TypeAutoComplete;
+export { TypeAutoComplete };
