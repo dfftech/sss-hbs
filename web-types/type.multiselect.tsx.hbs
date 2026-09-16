@@ -1,0 +1,175 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Control, Controller, ControllerRenderProps, FieldError, FieldValues, RegisterOptions } from 'react-hook-form';
+import TypeIcon from './type.icon';
+
+export type MultiSelectOption = {
+    key: string;
+    label: string;
+    disabled?: boolean;
+};
+
+type TypeMultiSelectProps = {
+    label?: string;
+    value?: string[];
+    options: MultiSelectOption[];
+    onChange?: (value: string[]) => void;
+    className?: string;
+    disabled?: boolean;
+    placeholder?: string;
+    required?: boolean;
+    // React Hook Form props
+    control?: Control<FieldValues>;
+    name?: string;
+    rules?: RegisterOptions;
+    error?: FieldError;
+};
+
+export const TypeMultiselect: React.FC<TypeMultiSelectProps> = ({
+    label,
+    value = [],
+    options = [],
+    onChange,
+    className = 'w-full',
+    disabled = false,
+    placeholder = 'Select options',
+    required = false,
+    control,
+    name,
+    rules,
+    error,
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const toggleOption = (optionKey: string, currentValues: string[], onChangeCallback: (v: string[]) => void) => {
+        let newValues: string[];
+        if (optionKey === 'selectAll') {
+            const allKeys = options.filter(opt => !opt.disabled).map(opt => opt.key);
+            if (currentValues.length === allKeys.length && allKeys.length > 0) { // Added allKeys.length > 0 to prevent deselecting all when no options
+                newValues = []; // Deselect all
+            } else {
+                newValues = allKeys; // Select all
+            }
+        } else {
+            if (currentValues.includes(optionKey)) {
+                newValues = currentValues.filter((v) => v !== optionKey);
+            } else {
+                newValues = [...currentValues, optionKey];
+            }
+        }
+        onChangeCallback(newValues);
+    };
+
+    const getDisplayValue = (currentValues: string[]) => {
+        if (!currentValues || currentValues.length === 0) return '';
+        const selectedLabels = currentValues
+            .map((val) => options.find((opt) => opt.key === val)?.label)
+            .filter(Boolean);
+        return selectedLabels.join(', ');
+    };
+
+    const renderDropdown = (currentValues: string[], onChangeCallback: (v: string[]) => void) => (
+        <div className='w-full' ref={dropdownRef}>
+            <label className='floating-label w-full'>
+                <div className='relative w-full'>
+                    <div
+                        className={`input input-md input-bordered w-full flex items-center pr-10 cursor-pointer overflow-hidden whitespace-nowrap text-ellipsis ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${currentValues.length === 0 ? 'justify-left text-base-content/50' : 'justify-left'}`}
+                        onClick={() => !disabled && setIsOpen(!isOpen)}
+                    >
+                        {getDisplayValue(currentValues) || placeholder}
+                    </div>
+                    <span className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none'>
+                        <TypeIcon name='ChevronDown' size={16} />
+                    </span>
+                </div>
+                {label && (
+                    <span className='pointer-events-none bg-base-100'>
+                        {label}
+                        {required && <span className='text-error ml-1'>*</span>}
+                    </span>
+                )}
+            </label>
+
+            {isOpen && !disabled && (
+                <ul className='absolute z-[100] mt-1 p-2 shadow menu bg-base-100 rounded-box w-full max-h-60 overflow-auto border border-base-200'>
+                    {options.length === 0 ? (
+                        <li className='p-2 text-sm text-base-content/50'>No options available</li>
+                    ) : (
+                        <>
+                            <li>
+                                <label className='flex items-center gap-2 cursor-pointer font-semibold border-b border-base-200 pb-2 mb-1'>
+                                    <input
+                                        type='checkbox'
+                                        className='checkbox checkbox-sm checkbox-primary rounded-md'
+                                        checked={currentValues.length === options.filter(o => !o.disabled).length && options.length > 0}
+                                        onChange={() => toggleOption('selectAll', currentValues, onChangeCallback)}
+                                    />
+                                    <span>Select All</span>
+                                </label>
+                            </li>
+                            {options.map((option) => (
+                                <li key={option.key}>
+                                    <label className={`flex items-center gap-2 cursor-pointer ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        <input
+                                            type='checkbox'
+                                            className='checkbox checkbox-sm checkbox-primary rounded-md'
+                                            checked={currentValues.includes(option.key)}
+                                            disabled={option.disabled}
+                                            onChange={() => !option.disabled && toggleOption(option.key, currentValues, onChangeCallback)}
+                                        />
+                                        <span>{option.label}</span>
+                                    </label>
+                                </li>
+                            ))}
+                        </>
+                    )}
+                </ul>
+            )}
+        </div>
+    );
+
+    if (control && name) {
+        return (
+            <div className={`form-control ${className}`}>
+                <Controller
+                    name={name}
+                    control={control}
+                    rules={rules}
+                    defaultValue={value || []}
+                    render={({ field }: { field: ControllerRenderProps<FieldValues, string> }) => {
+                        const currentVals = Array.isArray(field.value) ? field.value : [];
+                        return renderDropdown(currentVals, (newVals) => {
+                            field.onChange(newVals);
+                            if (onChange) onChange(newVals);
+                        });
+                    }}
+                />
+                {error && (
+                    <label className='label'>
+                        <span className='label-text-alt text-error'>{error.message}</span>
+                    </label>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className={`form-control ${className}`}>
+            {renderDropdown(value || [], (newVals) => onChange?.(newVals))}
+        </div>
+    );
+};
+
+export default TypeMultiselect;

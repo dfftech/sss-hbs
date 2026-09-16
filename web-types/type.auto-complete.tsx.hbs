@@ -1,0 +1,207 @@
+'use client';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Controller, Control, ControllerRenderProps, FieldValues } from 'react-hook-form';
+import TypeIcon from '@/types/type.icon';
+
+export type AutoCompleteOption = {
+  key: string;
+  label: string;
+  disabled?: boolean;
+};
+
+type TypeAutoCompleteProps = {
+  label?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  control: Control<any>;
+  name: string;
+  placeholder?: string;
+  rules?: Record<string, unknown>;
+  defaultValue?: string;
+  className?: string;
+  error?: { message?: string };
+  options: AutoCompleteOption[];
+  required?: boolean;
+  hideLabel?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
+};
+
+/**
+ * Inner component to manage local state and synchronization without useWatch
+ */
+const AutoCompleteContent = ({
+  field: { value, onChange, ref },
+  options,
+  placeholder,
+  label,
+  required,
+  hideLabel,
+  isLoading,
+  disabled,
+}: {
+  field: ControllerRenderProps<FieldValues, string>;
+  options: AutoCompleteOption[];
+  placeholder?: string;
+  label?: string | null;
+  required?: boolean;
+  hideLabel?: boolean;
+  isLoading?: boolean;
+  disabled?: boolean;
+}) => {
+  const [inputValue, setInputValue] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Sync input value with external field value
+  useEffect(() => {
+    if (value && options.length > 0) {
+      const selected = options.find((opt) => opt.key === value);
+      if (selected) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setInputValue(selected.label);
+      }
+    } else if (!value) {
+      setInputValue('');
+    }
+  }, [value, options]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = useMemo(() => {
+    if (!inputValue || !isSearching) return options;
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(inputValue.toLowerCase()),
+    );
+  }, [inputValue, options, isSearching]);
+
+  const handleSelect = (option: AutoCompleteOption) => {
+    onChange(option.key);
+    setInputValue(option.label);
+    setIsSearching(false);
+    setIsDropdownOpen(false);
+  };
+
+  return (
+    <div className='relative w-full' ref={dropdownRef}>
+      <label className='floating-label w-full'>
+        <input
+          type='text'
+          placeholder={placeholder || (label as string) || ' '}
+          className={`input input-md input-bordered w-full pr-10 ${disabled || isLoading ? 'opacity-50 cursor-not-allowed bg-base-200' : 'bg-base-100'}`}
+          value={inputValue}
+          disabled={disabled || isLoading}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            setIsSearching(true);
+            setIsDropdownOpen(true);
+            if (e.target.value === '') {
+              onChange('');
+            }
+          }}
+          onFocus={() => {
+            if (!disabled && !isLoading) {
+              setIsSearching(false);
+              setIsDropdownOpen(true);
+            }
+          }}
+          autoComplete='off'
+          ref={ref}
+        />
+        <div className='absolute inset-y-0 right-3 flex items-center gap-1 pointer-events-none'>
+          {isLoading ? (
+            <span className='loading loading-spinner loading-xs text-base-content/30'></span>
+          ) : (
+            <>
+              <TypeIcon name='Search' size={14} className='text-base-content/30' />
+              <TypeIcon name={isDropdownOpen ? 'ChevronUp' : 'ChevronDown'} size={16} className='text-base-content/50' />
+            </>
+          )}
+        </div>
+        {label && !hideLabel && (
+          <span className='pointer-events-none bg-base-100'>
+            {label}
+            {required && <span className='text-error ml-1'>*</span>}
+          </span>
+        )}
+      </label>
+
+      {isDropdownOpen && !disabled && (
+        <div className='absolute z-[100] mt-1 w-full bg-base-100 border border-base-200 rounded-box shadow-xl max-h-60 overflow-y-auto block'>
+          <ul className='menu w-full p-1'>
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option) => (
+                <li key={option.key}>
+                  <button
+                    type='button'
+                    className={`flex items-center gap-2 w-full text-left px-3 py-2 ${option.key === value ? 'bg-primary text-primary-content font-bold' : ''} ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => !option.disabled && handleSelect(option)}
+                  >
+                    {option.label}
+                  </button>
+                </li>
+              ))
+            ) : (
+              <li className='p-2 text-sm text-base-content/50 text-center'>No options found</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const TypeAutoComplete: React.FC<TypeAutoCompleteProps> = ({
+  control,
+  label,
+  name,
+  placeholder = 'Search...',
+  rules,
+  defaultValue = '',
+  className = 'w-full',
+  error,
+  options = [],
+  required = false,
+  hideLabel = false,
+  isLoading = false,
+  disabled = false,
+}) => {
+  return (
+    <div className={`form-control ${className}`}>
+      <Controller
+        control={control}
+        name={name}
+        rules={rules}
+        defaultValue={defaultValue}
+        render={({ field }) => (
+          <AutoCompleteContent
+            field={field}
+            options={options}
+            placeholder={placeholder}
+            label={label}
+            required={required}
+            hideLabel={hideLabel}
+            isLoading={isLoading}
+            disabled={disabled}
+          />
+        )}
+      />
+      {error && (
+        <label className='label'>
+          <span className='label-text-alt text-error'>{error.message}</span>
+        </label>
+      )}
+    </div>
+  );
+};
+
+export default TypeAutoComplete;

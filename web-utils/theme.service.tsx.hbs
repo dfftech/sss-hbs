@@ -1,0 +1,73 @@
+import { useState, useEffect } from 'react';
+import { signal } from '@preact/signals-core';
+import { ThemeMode } from '../services/app.event';
+
+export const themeSignal = signal('system');
+export const deviceSignal = signal<'mobile' | 'tablet' | 'laptop' | 'monitor'>('monitor');
+
+export function useDeviceResponsive() {
+  const [isWindowMobileOrTablet, setIsWindowMobileOrTablet] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setIsWindowMobileOrTablet(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const device = deviceSignal.value;
+  return device === 'mobile' || device === 'tablet' || isWindowMobileOrTablet;
+}
+
+export function initTheme() {
+  if (typeof window === 'undefined') return;
+
+  // First check localStorage
+  const saved = localStorage.getItem('theme') || 'system';
+  ThemeMode.value = saved;
+
+  let activeTheme = saved;
+  if (saved === 'system') {
+    activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  themeSignal.value = activeTheme;
+  applyThemeToDOM(activeTheme);
+
+  // Setup listener for system theme changes
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const listener = (e: MediaQueryListEvent) => {
+    if (ThemeMode.value === 'system') {
+      const active = e.matches ? 'dark' : 'light';
+      themeSignal.value = active;
+      applyThemeToDOM(active);
+    }
+  };
+  mediaQuery.removeEventListener('change', listener);
+  mediaQuery.addEventListener('change', listener);
+}
+
+export function setTheme(theme: string) {
+  if (typeof window === 'undefined') return;
+  ThemeMode.value = theme;
+  localStorage.setItem('theme', theme);
+
+  let activeTheme = theme;
+  if (theme === 'system') {
+    activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  themeSignal.value = activeTheme;
+  applyThemeToDOM(activeTheme);
+}
+
+function applyThemeToDOM(theme: string) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme', theme);
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}

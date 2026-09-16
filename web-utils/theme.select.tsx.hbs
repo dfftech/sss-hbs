@@ -1,0 +1,17 @@
+import { initTheme, setTheme, themeSignal } from './theme.service';
+import { useSignals } from "@preact/signals-react/runtime";
+import { useEffect } from "react";
+
+export default function ThemeSelect() {
+  useSignals();
+  useEffect(() => {
+    initTheme();
+  }, []);
+
+  return (
+    <select className="select select-bordered w-full" value={themeSignal.value} onChange={(e) => setTheme(e.target.value)}>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  );
+}

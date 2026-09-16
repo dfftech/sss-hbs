@@ -1,0 +1,24 @@
+import { ArticleLayout } from '@/layouts/article-layout';
+import { ContentLayout } from '@/layouts/content-layout';
+import { FloatLayout } from '@/layouts/float-layout';
+import { SkeletonArticle } from '@/skeleton/skeleton-article';
+import { SkeletonTable } from '@/skeleton/skeleton-table';
+import { SkeletonFloat } from '@/skeleton/skeleton-float';
+
+export function SkeletonPage() {
+  return (
+    <div className='w-full min-h-[60vh]'>
+      <ArticleLayout>
+        <SkeletonArticle />
+      </ArticleLayout>
+      <ContentLayout>
+        <div className='p-4'>
+          <SkeletonTable />
+        </div>
+      </ContentLayout>
+      <FloatLayout>
+        <SkeletonFloat />
+      </FloatLayout>
+    </div>
+  );
+}

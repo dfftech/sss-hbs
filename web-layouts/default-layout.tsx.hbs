@@ -1,0 +1,129 @@
+'use client';
+
+import React from 'react';
+import { useSignals } from '@preact/signals-react/runtime';
+import { usePathname } from 'next/navigation';
+import { Navbar } from '@/utils/components/navbar';
+import { Sidebar } from '@/utils/components/sidebar';
+import { SessionToken } from '@/utils/services/app.event';
+import { NonAuthRoutes } from '@/utils/services/app.router';
+import { initTheme, deviceSignal } from '@/utils/theme/theme.service';
+
+export default function DefaultLayout({ children }: { children: React.ReactNode }) {
+  useSignals();
+
+  const [mounted, setMounted] = React.useState(false);
+  const [toggled, setToggled] = React.useState(true);
+  const [isWindowMobileOrTablet, setIsWindowMobileOrTablet] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    initTheme();
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setIsWindowMobileOrTablet(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const pathname = usePathname();
+  const isNonAuthRoute = NonAuthRoutes.includes(pathname);
+  const showSidebar = mounted && SessionToken.value && !isNonAuthRoute;
+  const device = deviceSignal.value;
+
+  const renderContent = () => {
+    if (!mounted) {
+      return (
+        <div className='flex-grow overflow-auto h-[calc(100vh-82px)] bg-[#fff5fc] dark:bg-[#0f0f11]'>
+          {children}
+        </div>
+      );
+    }
+
+    if (isWindowMobileOrTablet) {
+      return (
+        <div className='flex-grow overflow-y-auto h-[calc(100vh-82px)] bg-[#fff5fc] dark:bg-[#0f0f11]'>
+          {children}
+        </div>
+      );
+    }
+
+    if (device === 'mobile') {
+      return (
+        <div className='w-full h-full flex flex-col items-center justify-center bg-zinc-900/5 dark:bg-black/20 py-2 overflow-hidden flex-grow'>
+          <span className='text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-widest'>
+            Mobile (390px)
+          </span>
+          {/* Phone Shell */}
+          <div className='w-[390px] h-[calc(100vh-140px)] border-[8px] border-slate-900 dark:border-zinc-800 rounded-[40px] shadow-2xl relative bg-white dark:bg-[#0f0f11] overflow-hidden flex flex-col'>
+            {/* Notch */}
+            <div className='absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-5 bg-slate-900 dark:bg-zinc-800 rounded-b-2xl z-50 flex items-center justify-center'>
+              <div className='w-12 h-1 bg-slate-800 dark:bg-zinc-700 rounded-full' />
+            </div>
+            {/* Content Area */}
+            <div className='flex-grow overflow-y-auto h-full pt-4 bg-[#fff5fc] dark:bg-[#0f0f11]'>
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (device === 'tablet') {
+      return (
+        <div className='w-full h-full flex flex-col items-center justify-center bg-zinc-900/5 dark:bg-black/20 py-2 overflow-hidden flex-grow'>
+          <span className='text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-widest'>
+            Tablet (768px)
+          </span>
+          {/* Tablet Shell */}
+          <div className='w-[768px] h-[calc(100vh-140px)] border-[12px] border-slate-950 dark:border-zinc-800 rounded-[24px] shadow-2xl relative bg-white dark:bg-[#0f0f11] overflow-hidden flex flex-col'>
+            {/* Content Area */}
+            <div className='flex-grow overflow-y-auto h-full bg-[#fff5fc] dark:bg-[#0f0f11]'>
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (device === 'laptop') {
+      return (
+        <div className='w-full h-full flex flex-col items-center justify-center bg-zinc-900/5 dark:bg-black/20 py-2 overflow-hidden flex-grow'>
+          <span className='text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-widest'>
+            Laptop (1280px)
+          </span>
+          {/* Laptop Shell */}
+          <div className='w-[1280px] max-w-full h-[calc(100vh-140px)] border-[4px] border-slate-900 dark:border-zinc-800 rounded-lg shadow-xl relative bg-white dark:bg-[#0f0f11] overflow-hidden flex flex-col'>
+            {/* Content Area */}
+            <div className='flex-grow overflow-y-auto h-full bg-[#fff5fc] dark:bg-[#0f0f11]'>
+              {children}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default monitor mode (100% width/height)
+    return (
+      <div className='flex-grow overflow-y-auto h-[calc(100vh-82px)] card bg-[#fff5fc] dark:bg-[#121214] shadow-xl border border-gray-100 dark:border-zinc-800'>
+        {children}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div className='relative w-full flex flex-col h-[calc(100vh-10px)] overflow-hidden gap-2'>
+        <Navbar onToggle={() => setToggled(!toggled)} />
+        <main className='container mx-auto flex-grow h-full overflow-hidden'>
+          <div className='flex gap-2 h-full overflow-hidden'>
+            {showSidebar && <Sidebar isOpen={toggled} onToggle={() => setToggled(!toggled)} />}
+            {renderContent()}
+          </div>
+        </main>
+      </div>
+    </>
+  );
+}

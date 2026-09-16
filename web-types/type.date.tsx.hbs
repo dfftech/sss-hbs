@@ -1,0 +1,75 @@
+import { Controller, Control, FieldValues, Path } from "react-hook-form";
+
+type TypeDateProps<TFieldValues extends FieldValues = FieldValues> = {
+  control: Control<TFieldValues>;
+  name: Path<TFieldValues>;
+  label: string;
+  rules?: Record<string, unknown>;
+  error?: { message?: string };
+  className?: string;
+  disabled?: boolean;
+  isDateTimeEnabled?: boolean;
+  onChange?: (value: Date | null) => void;
+};
+
+function TypeDatePicker<TFieldValues extends FieldValues = FieldValues>({
+  control,
+  name,
+  label,
+  rules = {},
+  error,
+  className = "w-full",
+  disabled = false,
+  isDateTimeEnabled = false,
+  onChange,
+}: TypeDateProps<TFieldValues>) {
+  return (
+    <section className={className}>
+      <Controller
+        control={control}
+        name={name}
+        rules={rules}
+        render={({ field }) => (
+          <label className="floating-label w-full">
+            <input
+              type={isDateTimeEnabled ? "datetime-local" : "date"}
+              className={`input input-bordered w-full text-base-content bg-base-100 ${error ? "input-error" : ""
+                }`}
+              placeholder={label}
+              disabled={disabled}
+              value={
+                field.value
+                  ? isDateTimeEnabled
+                    ? new Date(field.value).toISOString().slice(0, 16)
+                    : new Date(field.value).toISOString().slice(0, 10)
+                  : ""
+              }
+              onChange={(e) => {
+                const value = e.target.value
+                  ? new Date(e.target.value)
+                  : null;
+
+                field.onChange(value);
+                onChange?.(value);
+              }}
+            />
+            <span>
+              {label}
+              {!!rules?.required && (
+                <span className="text-red-500 ml-1">*</span>
+              )}
+            </span>
+          </label>
+        )}
+      />
+
+      {error && (
+        <p className="text-red-500 text-xs mt-1">
+          {error.message}
+        </p>
+      )}
+    </section>
+  );
+}
+
+export default TypeDatePicker;

@@ -1,0 +1,103 @@
+default:
+  tags:
+    - {{to_kebab_case tenant}}-{{to_kebab_case module}}
+
+stages:
+  - version
+  - build
+  - update-cd
+
+variables:
+  REGISTRY_URL: "registry.gitlab.com"
+  PROJECT_PATH: "${CI_PROJECT_PATH}"
+  IMAGE_NAME: "${REGISTRY_URL}/${PROJECT_PATH}"
+  CD_PROJECT_ID: "{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-cd"
+  CD_BRANCH: "main"
+  CD_PATH: "dev"
+  CD_FILE_NAME: "{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.deploy.yaml"
+
+# -------------------------
+# 🕒 VERSION GENERATOR
+# -------------------------
+generate-version:
+  stage: version
+  image: alpine:3.20
+  script:
+    - apk add --no-cache bash coreutils
+    - IMAGE_TAG=$(date +'%y.%m.%d%H%M%S')
+    - echo "Generated IMAGE_TAG=$IMAGE_TAG"
+    - echo "IMAGE_TAG=$IMAGE_TAG" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  only:
+    - dev
+
+# -------------------------
+# 🏗️ BUILD STAGE (Kaniko on Kubernetes)
+# -------------------------
+# Use *-debug image: the slim executor has no shell; GitLab Runner cannot inject
+# scripts into the build container → "container not found (build)" on K8s executor.
+build:
+  stage: build
+  # Default runner/project timeout is often 1h; Next + Kaniko cache push can exceed it.
+  timeout: 2h
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  needs:
+    - job: generate-version
+      artifacts: true
+  script:
+    - mkdir -p /kaniko/.docker
+    - |
+      cat > /kaniko/.docker/config.json <<EOF
+      {
+        "auths": {
+          "${CI_REGISTRY}": {
+            "username": "${CI_REGISTRY_USER}",
+            "password": "${CI_REGISTRY_PASSWORD}"
+          }
+        }
+      }
+      EOF
+    # Note: --compressed-caching=false makes cache layers huge → slow pushes to GitLab Registry.
+    # Default compression keeps cache uploads reasonable. Raise job timeout if builds still hit limits.
+    - |
+      /kaniko/executor \
+        --context "${CI_PROJECT_DIR}" \
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
+        --destination "${IMAGE_NAME}:${IMAGE_TAG}" \
+        --destination "${IMAGE_NAME}:latest" \
+        --cache=true \
+        --cache-repo="${IMAGE_NAME}/cache" \
+        --snapshot-mode=redo \
+        --use-new-run
+
+  only:
+    - dev
+# -------------------------
+# 🔁 UPDATE CD REPO STAGE
+# -------------------------
+update-cd:
+  stage: update-cd
+  # alpine/git ENTRYPOINT is `git`; GitLab injects `sh` → "git: 'sh' is not a git command"
+  image:
+    name: alpine/git:latest
+    entrypoint: [""]
+  script:
+    - git clone --depth 1 --branch ${CD_BRANCH} "https://oauth2:${GITLAB_PUSH_TOKEN}@gitlab.com/${CD_PROJECT_ID}.git" cd-repo
+    - cd cd-repo/${CD_PATH}
+    - echo "Updating deployment image tag to $IMAGE_TAG"
+    - 'sed -i "s|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g" "${CD_FILE_NAME}"'
+    - git config user.email "ci-bot@gitlab.com"
+    - git config user.name "GitLab CI Bot"
+    - git add "${CD_FILE_NAME}"
+    - git commit -m "update image tag to ${IMAGE_TAG} [ci skip]" || echo "No changes to commit"
+    - git push origin ${CD_BRANCH}
+  needs:
+    - job: build
+    - job: generate-version
+      artifacts: true
+  only:
+    - dev

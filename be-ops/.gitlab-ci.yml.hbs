@@ -1,0 +1,113 @@
+default:
+  tags:
+    - {{to_kebab_case tenant}}-{{to_kebab_case module}}
+  interruptible: true
+
+stages:
+  - build
+  - update-cd
+
+variables:
+  CD_PROJECT_ID: "{{to_kebab_case tenant}}-{{to_kebab_case module}}/{{to_kebab_case module}}-cd"
+  CD_BRANCH: "main"
+  CD_PATH: "dev"
+  CD_FILE_NAME: "{{to_kebab_case module}}-{{to_kebab_case name}}-{{to_kebab_case type}}.deploy.yaml"
+  KANIKO_CACHE_REPO: "${CI_REGISTRY_IMAGE}/kaniko-cache"
+  KANIKO_EXECUTOR_VERSION: "v1.23.2"
+  KANIKO_EXECUTOR_IMAGE: "gcr.io/kaniko-project/executor:${KANIKO_EXECUTOR_VERSION}"
+  CRANE_VERSION: "v0.20.3"
+  SSL_CERT_DIR: /etc/ssl/certs
+
+.dev_branch:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+build:
+  extends: .dev_branch
+  stage: build
+  image:
+    name: alpine:3.20
+    pull_policy:
+      - if-not-present
+      - always
+
+  variables:
+    DOCKER_CONFIG: /kaniko/.docker
+
+  cache:
+    - key: "kaniko-tools-${KANIKO_EXECUTOR_VERSION}-${CRANE_VERSION}"
+      paths:
+        - .ci-cache/
+
+  before_script:
+    - apk add --no-cache ca-certificates curl tar
+    - mkdir -p "${CI_PROJECT_DIR}/.ci-cache" /kaniko/.docker
+    - |
+      set -e
+      CACHE="${CI_PROJECT_DIR}/.ci-cache"
+      if [ ! -x "${CACHE}/crane" ]; then
+        curl -fsSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C "${CACHE}" crane
+        chmod +x "${CACHE}/crane"
+      fi
+      if [ ! -x "${CACHE}/kaniko-executor" ]; then
+        TAR=/tmp/kaniko-fs.tar
+        "${CACHE}/crane" export "${KANIKO_EXECUTOR_IMAGE}" > "${TAR}"
+        REL=$(tar -tf "${TAR}" | grep -E '^(\./)?kaniko/executor$' | head -1)
+        if [ -z "$REL" ]; then
+          echo "Could not find kaniko/executor in ${KANIKO_EXECUTOR_IMAGE}; tar listing:" >&2
+          tar -tf "${TAR}" | head -40 >&2
+          exit 1
+        fi
+        tar -xOf "${TAR}" "${REL}" > "${CACHE}/kaniko-executor.tmp"
+        mv "${CACHE}/kaniko-executor.tmp" "${CACHE}/kaniko-executor"
+        chmod +x "${CACHE}/kaniko-executor"
+        rm -f "${TAR}"
+      fi
+
+  script:
+    - |
+      set -e
+      export IMAGE_TAG=$(date +'%y.%m.%d%H%M%S')
+      echo "IMAGE_TAG=${IMAGE_TAG}" >> "${CI_PROJECT_DIR}/build.env"
+      AUTH=$(printf '%s:%s' "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')
+      printf '{"auths":{"%s":{"auth":"%s"}}}' "${CI_REGISTRY}" "${AUTH}" > /kaniko/.docker/config.json
+      exec "${CI_PROJECT_DIR}/.ci-cache/kaniko-executor" \
+        --context "${CI_PROJECT_DIR}" \
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile" \
+        --destination "${CI_REGISTRY_IMAGE}:${IMAGE_TAG}" \
+        --cache=true \
+        --cache-repo "${KANIKO_CACHE_REPO}" \
+        --compressed-caching=false \
+        --snapshot-mode=full \
+        --ignore-path=.git/ \
+        --verbosity=error
+
+  artifacts:
+    reports:
+      dotenv: build.env
+
+update-cd:
+  extends: .dev_branch
+  stage: update-cd
+  image: alpine:3.20
+
+  variables:
+    GIT_STRATEGY: none
+
+  before_script:
+    - apk add --no-cache ca-certificates git
+
+  script:
+    - git clone --depth 1 --branch ${CD_BRANCH} "https://oauth2:${GITLAB_PUSH_TOKEN}@gitlab.com/${CD_PROJECT_ID}.git" cd-repo
+    - cd cd-repo/${CD_PATH}
+    - |
+      sed -i "s|image: ${CI_REGISTRY_IMAGE}:.*|image: ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}|g" "${CD_FILE_NAME}"
+    - git config user.email "ci-bot@gitlab.com"
+    - git config user.name "GitLab CI Bot"
+    - git add "${CD_FILE_NAME}"
+    - git commit -m "update image tag to ${IMAGE_TAG} [ci skip]" || echo "No changes"
+    - git push origin ${CD_BRANCH} --force
+
+  needs:
+    - job: build
+      artifacts: true
