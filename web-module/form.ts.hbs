@@ -4,13 +4,16 @@ import { useSignals } from "@preact/signals-react/runtime";
 import { useTranslation } from "react-i18next";
 import { getDefault{{to_pascal_case name}}, {{to_camel_case name}}InitValues } from "../hooks/data";
 import { {{to_camel_case name}}Validation } from "../hooks/validation";
-import { {{to_camel_case name}}EntityCall } from "../hooks/service.entity";
-import { {{to_camel_case name}}SaveCall, {{to_camel_case name}}SaveIsLoading } from "../hooks/service.save";
+import {
+  {{to_camel_case name}}EntityCall,
+  {{to_camel_case name}}SaveCall,
+  {{to_camel_case name}}SaveIsLoading,
+} from "../hooks/service-http";
 import {
   editModeUpdate,
   Selected{{to_pascal_case name}},
   {{to_camel_case name}}SelectedId,
-} from "../hooks/edit-mode";
+} from "../hooks/service";
 import { {{to_pascal_case name}}Type } from "../hooks/types";
 
 export function use{{to_pascal_case name}}Form() {

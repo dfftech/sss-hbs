@@ -1,0 +1,92 @@
+import { signal } from "@preact/signals-react";
+import { t } from "i18next";
+import { AppHttp } from "@/utils/services/app.http";
+import { MsUrl } from "@/config/api.config";
+import { ShowToast } from "@/utils/services/app.event";
+import { AppProps } from "@/utils/services/app.props";
+import { RequestByIdType, RequestBodyType, RequestQueryType, ResponseType } from "dff-util";
+import { {{to_pascal_case name}}Type } from "./types";
+
+export const {{to_camel_case name}}ListIsLoading = signal(false);
+
+export const {{to_camel_case name}}ListCall = async (
+  params: RequestQueryType,
+): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}ListIsLoading.value = true;
+    const resp = (await AppHttp.Get(
+      MsUrl.api + "/{{to_kebab_case name}}/search",
+      params as Record<string, string | number | boolean>,
+    )) as ResponseType;
+    return {
+      ...resp,
+      data: Array.isArray(resp?.data) ? (resp.data as {{to_pascal_case name}}Type[]) : [],
+      total: Number(resp?.total || 0),
+    };
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}ListIsLoading.value = false;
+  }
+};
+
+export const {{to_camel_case name}}SaveIsLoading = signal(false);
+
+export const {{to_camel_case name}}SaveCall = async (
+  params: RequestBodyType,
+): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}SaveIsLoading.value = true;
+    const resp = (await AppHttp.Post(
+      MsUrl.base + "/{{to_kebab_case name}}/save",
+      params,
+    )) as ResponseType;
+    return resp;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}SaveIsLoading.value = false;
+  }
+};
+
+export const {{to_camel_case name}}EntityIsLoading = signal(false);
+
+export const {{to_camel_case name}}EntityCall = async (
+  id: RequestByIdType["id"],
+): Promise<{{to_pascal_case name}}Type | undefined> => {
+  try {
+    {{to_camel_case name}}EntityIsLoading.value = true;
+    const resp = (await AppHttp.Get(
+      MsUrl.api + "/{{to_kebab_case name}}/" + id,
+      {},
+    )) as ResponseType;
+    return (resp?.data as {{to_pascal_case name}}Type) || undefined;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}EntityIsLoading.value = false;
+  }
+};
+
+export const {{to_camel_case name}}StatusIsLoading = signal(false);
+
+export const {{to_camel_case name}}StatusCall = async (
+  row: {{to_pascal_case name}}Type,
+): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}StatusIsLoading.value = true;
+    const resp = (await AppHttp.Post(
+      MsUrl.base + "/{{to_kebab_case name}}/status",
+      { id: row.id, active: !row.active },
+    )) as ResponseType;
+    return resp;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}StatusIsLoading.value = false;
+  }
+};

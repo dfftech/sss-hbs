@@ -97,7 +97,6 @@ web-module,modules/{{to_kebab_case name}}/components,view.tsx,{{to_kebab_case na
 web-module,modules/{{to_kebab_case name}}/hooks,data.ts,,false,true
 web-module,modules/{{to_kebab_case name}}/hooks,types.ts,,false,true
 web-module,modules/{{to_kebab_case name}}/hooks,validation.ts,,false,true
-web-module,modules/{{to_kebab_case name}}/hooks,edit-mode.ts,,false,true
-web-module,modules/{{to_kebab_case name}}/hooks,service.list.ts,,false,true
-web-module,modules/{{to_kebab_case name}}/hooks,service.save.ts,,false,true
-web-module,modules/{{to_kebab_case name}}/hooks,service.entity.ts,,false,true
+web-module,modules/{{to_kebab_case name}}/hooks,service.ts,,false,true
+web-module,modules/{{to_kebab_case name}}/hooks,service-http.ts,,false,true
+web-module,modules/{{to_kebab_case name}}/hooks,service-load.ts,,false,true

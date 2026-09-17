@@ -1,0 +1,51 @@
+import { signal } from "@preact/signals-react";
+import { t } from "i18next";
+import { AppHttp } from "@/utils/services/app.http";
+import { ShowToast } from "@/utils/services/app.event";
+import { AppProps } from "@/utils/services/app.props";
+import { ResponseType } from "dff-util";
+
+export const {{to_camel_case name}}LanguageLoadIsLoading = signal(false);
+
+export const {{to_camel_case name}}LanguageLoadCall = async (): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}LanguageLoadIsLoading.value = true;
+    const resp = (await AppHttp.Load("language", {})) as ResponseType;
+    return resp;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}LanguageLoadIsLoading.value = false;
+  }
+};
+
+export const {{to_camel_case name}}CountryLoadIsLoading = signal(false);
+
+export const {{to_camel_case name}}CountryLoadCall = async (): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}CountryLoadIsLoading.value = true;
+    const resp = (await AppHttp.Load("country", {})) as ResponseType;
+    return resp;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}CountryLoadIsLoading.value = false;
+  }
+};
+
+export const {{to_camel_case name}}RoleLoadIsLoading = signal(false);
+
+export const {{to_camel_case name}}RoleLoadCall = async (): Promise<ResponseType | undefined> => {
+  try {
+    {{to_camel_case name}}RoleLoadIsLoading.value = true;
+    const resp = (await AppHttp.Load("role", {})) as ResponseType;
+    return resp;
+  } catch (error: unknown) {
+    const err = error as { error?: { message?: string } };
+    ShowToast(t(err?.error?.message || AppProps.MESSAGE_INVALID_DATA), "warning");
+  } finally {
+    {{to_camel_case name}}RoleLoadIsLoading.value = false;
+  }
+};
