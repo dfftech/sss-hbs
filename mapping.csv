@@ -28,7 +28,6 @@ web-utils,utils/query-builder,utils.ts,,false,true
 web-utils,utils/services,apex.service.ts,,false,true
 web-utils,utils/services,app.event.ts,,false,true
 web-utils,utils/services,app.http.ts,,false,true
-web-utils,utils/services,app.methods.ts,,false,true
 web-utils,utils/services,app.otp.tsx,,false,true
 web-utils,utils/services,app.props.ts,,false,true
 web-utils,utils/services,app.router.ts,,false,true
